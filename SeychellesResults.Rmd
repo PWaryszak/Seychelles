@@ -31,8 +31,7 @@ library(readxl)
 
 
 ```{r,echo=T, include=FALSE}
-
-#Looking at totla nuber of studies:
+#Looking at total nuber of studies:
 mg <- read_excel("SeychellesMangroveReview.xlsx", sheet = "Mangrove_BC_stock")
 sg <- read_excel("SeychellesSeagrassReview.xlsx", sheet = "Seagrass_BC_stock")
 
@@ -45,34 +44,51 @@ mg_studies_past10 <- length(unique(mg_past10$Reference))
 sg_past10 <- filter(sg, Year > 2010)
 sg_studies_past10 <- length(unique(sg_past10$Reference)) 
 
-
-
-#Looking at number of studies per region:
-mg_studies_per_Country <- mg %>% group_by(Country) %>% summarize(mg_studies = n_distinct(Reference)) %>% arrange(desc(mg_studies)) %>% mutate(mg_tot=sum(mg_studies,na.rm=T))
-
-sg_studies_per_Country <- sg %>% group_by(Country) %>% summarize(sg_studies = n_distinct(Reference))%>% arrange(desc(sg_studies)) %>% mutate(sg_tot=sum(sg_studies, na.rm=T))
-sg_tot_value = mean(sg_studies_per_Country$sg_tot)#To replace NA that happen after left_join below:
-
-mg_sg <- left_join(mg_studies_per_Country,sg_studies_per_Country , by = "Country", fill=0) %>% mutate(sg_studies = replace_na(sg_studies, 0)) %>% #Replacing Na with zero to avail summing
-  mutate(sg_tot = replace_na(sg_tot, sg_tot_value)) %>% #replacing NA-s
-  mutate (total = sg_tot + mg_tot)
-
-top_mg <-  (mg_studies_per_Country[1,2]+ mg_studies_per_Country[2,2]) #total studies from top two countries
-top_sg <-  (sg_studies_per_Country[1,2]+ sg_studies_per_Country[2,2]) #total studies from top two countries
-top_two <- as.numeric(top_mg+top_sg)
-tot  <-  as.numeric(mean(mg_sg$total)) #all sg + all mg
-
-
 ```
 
 
 ## Literature overview
 
 Interest in blue carbon is growing rapidly in the SWIO research community, with 
-`r round(((mg_studies_past10+sg_studies_past10)/(mg_studies+sg_studies)*100),1)`% of the studies identified published within the past 10 years (2011-2021, Fig. X). Folowing global trends, most of the research has largely focused on mangrove ecosystems and aboveground carbon stocks (see ‘Ecosystem’ and ‘Dataset’ below; Fig. Xa,b). Within the region, `r (mg_sg[1,1])` and `r mg_sg[2,1]` have taken the lead on blue carbon research, with `r round((top_two/tot*100),1)`% of the data being collected in these locations (See “Location’ below; Fig. Xa,b)
+`r round(((mg_studies_past10+sg_studies_past10)/(mg_studies+sg_studies)*100),1)`% of the studies identified published within the past 10 years (2011-2021, Fig. X). Folowing global trends, most of the research has largely focused on mangrove ecosystems and aboveground carbon stocks (see ‘Ecosystem’ and ‘Dataset’ below; Fig. Xa,b). Within the region, `r (mg_sg[1,1])` and `r mg_sg[2,1]` have taken the lead on blue carbon research, with `r round((top_two/tot*100),1)`% of the data being collected in these locations (See “Location’ below; Fig. Xa,b).
 
 Despite the growing recognition on blue carbon stocks for climate change mitigation, few papers explicitly examined mangrove and seagrass carbon stocks. Many of the biomass or carbon measures reviewed were collected as complementary datasets to describe the environmental context/setting of field sites and experiments (e.g., ). Interestingly, many of the most complete and robust datasets were fueled by peer-reviewed publications arising from local Master and PhD theses (e.g., Njana2015, Githaiga2017, Juma2019), which suggests a rising interest in blue carbon research field.
 
 ## Ecosystem focus
-From the `r tot` studies reviewed, `r round((mg_studies/tot*100), 1)`% were based on mangrove ecosystems, while `r round((sg_studies/tot*100), 1)`%  focused on seagrass meadows (Fig. Xa). Despite seagrass have higher extent in the WIO ( ha of seagrass vs ha of mangroves), mangrove research is likely favoured given (a) its applicability within REDD+ program; (b) its higher carbon storage and potential for carbon offsetting; (c) easier access to sites and sampling.  The need for additional datasets (eg. mangrove allometric equations and wood density) also increased the number of relevant publications within mangrove ecosystems.  
 
+```{r,echo=T, include=FALSE}
+#Looking at number of studies per region:
+mg_studies_per_Country <- mg %>% group_by(Country) %>%
+  summarize(mg_studies = n_distinct(Reference)) %>%
+  arrange(desc(mg_studies)) %>%
+  mutate(mg_tot=sum(mg_studies,na.rm=T))
+
+sg_studies_per_Country <- sg %>% group_by(Country) %>% 
+  summarize(sg_studies = n_distinct(Reference))%>%
+  arrange(desc(sg_studies)) %>%
+  mutate(sg_tot=sum(sg_studies, na.rm=T))
+
+sg_tot_value = mean(sg_studies_per_Country$sg_tot)#To replace NA that happen after left_join below:
+
+mg_sg <- left_join(mg_studies_per_Country,sg_studies_per_Country , by = "Country", fill=0)%>%
+  mutate(sg_studies = replace_na(sg_studies, 0)) %>%   #Replacing NA-s with zeros
+  mutate(sg_tot = replace_na(sg_tot, sg_tot_value)) %>% #replacing NA-s with sg_tot_value
+  mutate (total = sg_tot + mg_tot)
+
+top_two_mg <-  (mg_studies_per_Country[1,2]+ mg_studies_per_Country[2,2]) #total studies from top two countries
+top_two_sg <-  (sg_studies_per_Country[1,2]+ sg_studies_per_Country[2,2]) #total studies from top two countries
+top_two <- as.numeric(top_two_mg + top_two_sg)
+tot  <-  as.numeric(mean(mg_sg$total)) #all sg + all mg
+sg_total <- as.numeric(mean(sg_studies_per_Country$sg_tot))
+mg_total <- as.numeric(mean(mg_studies_per_Country$mg_tot))
+
+```
+
+
+From the `r tot` studies reviewed, `r round((mg_total/tot*100), 1)`% were based on mangrove ecosystems, while `r round((sg_total/tot*100), 1)`%  focused on seagrass meadows (Fig. Xa). Despite seagrass have higher extent in the WIO ( ha of seagrass vs ha of mangroves), mangrove research is likely favoured given (a) its applicability within REDD+ program; (b) its higher carbon storage and potential for carbon offsetting; (c) easier access to sites and sampling.  The need for additional datasets (eg. mangrove allometric equations and wood density) also increased the number of relevant publications within mangrove ecosystems.
+
+
+## Datasets summary
+Most of the blue carbon literature in the WIO focuses on plant carbon stocks (X studies; Fig. Xb); with X% of these publications providing aboveground biomass (e.g., ), X% calculating belowground biomass (e.g., ), X% testing species- or site-specific allometric models (e.g., ), and X% reporting wood densities (e.g. ). 
+
+Despite most of the blue carbon stocks are stored within the coastal sediments, only X% of the XX studies included data on soil carbon stock (Fig. Xb). ____ percent of them report carbon stocks values on shallow soil cores (< X cm depth; e.g., Hemminga1994; Kristensen2008), while X% provide carbon estimates along deeper soil profiles (> X cm depth; e.g. Langat2014; Gress2017). Soil carbon content in the region is usually  calculated via the Walkley-Black Method (X%; e.g., Malgahaes2019), loss-on-ignition (LOI; %; e.g., Lyimo2002), or an elemental CN analyser (X%; e.g., Middelburg1996). Research that included soil carbon accretion rates comprised small component of the literature (X%) and they were generally focused on detecting Holocene sea-level changes using radiocarbon or Pb210 age dating on sediment cores (e.g., Punwong2013, Woodoffre2015). 
