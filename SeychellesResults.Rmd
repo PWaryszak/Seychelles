@@ -47,23 +47,17 @@ sg_studies_past10 <- length(unique(sg_past10$Reference))
 ```
 
 
-## Literature overview
-
-Interest in blue carbon is growing rapidly in the SWIO research community, with 
-`r round(((mg_studies_past10+sg_studies_past10)/(mg_studies+sg_studies)*100),1)`% of the studies identified published within the past 10 years (2011-2021, Fig. X). Folowing global trends, most of the research has largely focused on mangrove ecosystems and aboveground carbon stocks (see ‘Ecosystem’ and ‘Dataset’ below; Fig. Xa,b). Within the region, `r (mg_sg[1,1])` and `r mg_sg[2,1]` have taken the lead on blue carbon research, with `r round((top_two/tot*100),1)`% of the data being collected in these locations (See “Location’ below; Fig. Xa,b).
-
-Despite the growing recognition on blue carbon stocks for climate change mitigation, few papers explicitly examined mangrove and seagrass carbon stocks. Many of the biomass or carbon measures reviewed were collected as complementary datasets to describe the environmental context/setting of field sites and experiments (e.g., ). Interestingly, many of the most complete and robust datasets were fueled by peer-reviewed publications arising from local Master and PhD theses (e.g., Njana2015, Githaiga2017, Juma2019), which suggests a rising interest in blue carbon research field.
-
-## Ecosystem focus
 
 ```{r,echo=T, include=FALSE}
 #Looking at number of studies per region:
-mg_studies_per_Country <- mg %>% group_by(Country) %>%
+mg_studies_per_Country <- mg %>%
+  group_by(Country) %>%
   summarize(mg_studies = n_distinct(Reference)) %>%
   arrange(desc(mg_studies)) %>%
   mutate(mg_tot=sum(mg_studies,na.rm=T))
 
-sg_studies_per_Country <- sg %>% group_by(Country) %>% 
+sg_studies_per_Country <- sg %>%
+  group_by(Country) %>% 
   summarize(sg_studies = n_distinct(Reference))%>%
   arrange(desc(sg_studies)) %>%
   mutate(sg_tot=sum(sg_studies, na.rm=T))
@@ -77,6 +71,7 @@ mg_sg <- left_join(mg_studies_per_Country,sg_studies_per_Country , by = "Country
 
 top_two_mg <-  (mg_studies_per_Country[1,2]+ mg_studies_per_Country[2,2]) #total studies from top two countries
 top_two_sg <-  (sg_studies_per_Country[1,2]+ sg_studies_per_Country[2,2]) #total studies from top two countries
+
 top_two <- as.numeric(top_two_mg + top_two_sg)
 tot  <-  as.numeric(mean(mg_sg$total)) #all sg + all mg
 sg_total <- as.numeric(mean(sg_studies_per_Country$sg_tot))
@@ -85,10 +80,188 @@ mg_total <- as.numeric(mean(mg_studies_per_Country$mg_tot))
 ```
 
 
+## Literature overview
+
+Interest in blue carbon is growing rapidly in the SWIO research community, with 
+`r round(((mg_studies_past10+sg_studies_past10)/(mg_studies+sg_studies)*100),1)`% of the studies identified published within the past 10 years (2011-2021, Fig. X). Folowing global trends, most of the research has largely focused on mangrove ecosystems and aboveground carbon stocks (see ‘Ecosystem’ and ‘Dataset’ below; Fig. Xa,b). Within the region, `r (mg_sg[1,1])` and `r mg_sg[2,1]` have taken the lead on blue carbon research, with `r round((top_two/tot*100),1)`% of the data being collected in these locations (See “Location’ below; Fig. Xa,b).
+
+Despite the growing recognition on blue carbon stocks for climate change mitigation, few papers explicitly examined mangrove and seagrass carbon stocks. Many of the biomass or carbon measures reviewed were collected as complementary datasets to describe the environmental context/setting of field sites and experiments (e.g., ). Interestingly, many of the most complete and robust datasets were fueled by peer-reviewed publications arising from local Master and PhD theses (e.g., Njana2015, Githaiga2017, Juma2019), which suggests a rising interest in blue carbon research field.
+
+## Ecosystem focus
+
 From the `r tot` studies reviewed, `r round((mg_total/tot*100), 1)`% were based on mangrove ecosystems, while `r round((sg_total/tot*100), 1)`%  focused on seagrass meadows (Fig. Xa). Despite seagrass have higher extent in the WIO ( ha of seagrass vs ha of mangroves), mangrove research is likely favoured given (a) its applicability within REDD+ program; (b) its higher carbon storage and potential for carbon offsetting; (c) easier access to sites and sampling.  The need for additional datasets (eg. mangrove allometric equations and wood density) also increased the number of relevant publications within mangrove ecosystems.
 
 
 ## Datasets summary
-Most of the blue carbon literature in the WIO focuses on plant carbon stocks (X studies; Fig. Xb); with X% of these publications providing aboveground biomass (e.g., ), X% calculating belowground biomass (e.g., ), X% testing species- or site-specific allometric models (e.g., ), and X% reporting wood densities (e.g. ). 
 
-Despite most of the blue carbon stocks are stored within the coastal sediments, only X% of the XX studies included data on soil carbon stock (Fig. Xb). ____ percent of them report carbon stocks values on shallow soil cores (< X cm depth; e.g., Hemminga1994; Kristensen2008), while X% provide carbon estimates along deeper soil profiles (> X cm depth; e.g. Langat2014; Gress2017). Soil carbon content in the region is usually  calculated via the Walkley-Black Method (X%; e.g., Malgahaes2019), loss-on-ignition (LOI; %; e.g., Lyimo2002), or an elemental CN analyser (X%; e.g., Middelburg1996). Research that included soil carbon accretion rates comprised small component of the literature (X%) and they were generally focused on detecting Holocene sea-level changes using radiocarbon or Pb210 age dating on sediment cores (e.g., Punwong2013, Woodoffre2015). 
+```{r,echo=T,include=F}
+##MANGROVES studies looking at AGB_MgDWha,BGB_MgDWha,AGC_MgCha,BGC_MgCha========
+mg_plant_studies <- mg %>%
+  filter(AGB_MgDWha>0 |BGB_MgDWha>0 | AGC_MgCha >0 | BGC_MgCha>0) %>%
+  summarize(mg_plant_studies = n_distinct(Reference)) %>%
+  arrange(desc(mg_plant_studies))
+
+mg_plant_studies_total <-sum(mg_plant_studies$mg_plant_studies,na.rm=T)
+
+#Percent of mg plant studies with AboveGroundBiomass info:
+mg_plant_studies_AGB <- mg %>%
+  filter(AGB_MgDWha>0) %>%
+  group_by(Country) %>%
+  summarize(mg_plant_studies = n_distinct(Reference)) 
+
+mg_plant_studies_AGB_total <- as.numeric(sum(mg_plant_studies_AGB$mg_plant_studies))
+mg_AGB_MgDWha <- round((mg_plant_studies_AGB_total/mg_total*100),1)
+
+
+#Percent of mg plant studies with BelowGroundBiomass info:
+mg_plant_studies_BGB <- mg %>%
+  filter(BGC_MgCha>0) %>%
+  group_by(Country) %>%
+  summarize(mg_plant_studies = n_distinct(Reference)) 
+
+mg_plant_studies_BGB_total <- as.numeric(sum(mg_plant_studies_BGB$mg_plant_studies))
+mg_BGC_MgCha <- round((mg_plant_studies_BGB_total/mg_total*100),1)
+
+
+#SEAGRASS (looking at: AGB_gDWm2,AGC_MgCha,BGC_MgCh )===========
+sg_plant_studies <- sg %>%
+  filter(AGB_gDWm2>0 |BGB_gDWm2>0 | AGC_MgCha >0 | BGC_MgCha>0) %>%
+  summarize(sg_plant_studies = n_distinct(Reference)) %>%
+  arrange(desc(sg_plant_studies))
+
+sg_plant_studies_total <-sum(sg_plant_studies$sg_plant_studies,na.rm=T)
+sg_AGB_MgDWha <- round((sg_plant_studies_total/sg_total*100),1)
+
+
+#Percent of sg plant studies with AboveGroundBiomass info:
+sg_plant_studies_AGB <- sg %>%
+  filter(AGB_gDWm2>0) %>%
+  summarize(sg_plant_studies = n_distinct(Reference)) 
+
+sg_plant_studies_AGB_total <- as.numeric(sum(sg_plant_studies_AGB$sg_plant_studies))
+sg_AGB_gDWm2 <- round((sg_plant_studies_AGB_total/sg_total*100),1)
+
+#Percent of sg plant studies with BelowGroundBiomass info:
+sg_plant_studies_BGB <- sg %>%
+  filter(BGB_gDWm2>0) %>%
+  summarize(sg_plant_studies = n_distinct(Reference)) 
+
+sg_plant_studies_BGB_total <- as.numeric(sum(sg_plant_studies_BGB$sg_plant_studies))
+sg_BGB_gDWm2 <- round((sg_plant_studies_BGB_total/sg_total*100),1)
+
+#REF Examples:
+#Aboveground biomass
+mg_plant_studies_ref <- mg %>%
+  filter(AGB_MgDWha > 0) %>%
+  group_by(Reference) %>%
+  summarize(ref_rows = n())
+
+sg_plant_studies_ref <- sg %>%
+  filter(AGB_gDWm2 > 0 ) %>%
+  group_by(Reference) %>%
+  summarize(ref_rows = n())
+
+#Belowground biomasss:
+mg_plant_studies_ref <- mg %>%
+  filter(BGB_MgDWha > 0) %>%
+  group_by(Reference) %>%
+  summarize(ref_rows = n())%>% arrange(desc(ref_rows))
+
+sg_plant_studies_ref <- sg %>%
+  filter(BGB_gDWm2 > 0) %>%
+  group_by(Reference) %>%
+  summarize(ref_rows = n())%>% arrange(desc(ref_rows))
+
+
+```
+
+
+```{r,echo=T,include=F}
+#Allometric Equations study count==========
+#Load data sheet:
+mg_eq <- read_excel("SeychellesMangroveReview.xlsx", sheet = "MG_Review")
+sg_eq <- read_excel("SeychellesSeagrassReview.xlsx", sheet = "SG_Review")
+
+#count PlantMetric for mangroves:
+mg_papers_total <- as.numeric(length(unique(mg_eq$Paper)))
+mg_plant_metrics <- as.numeric(length(mg_eq[mg_eq$PlantMetric == "Y", ]))
+mg_eq_percent <- round((mg_plant_metrics/mg_papers_total*100),1)
+
+#count PlantMetric for seagrasses:
+sg_papers_total <- as.numeric(length(unique(sg_eq$Paper)))
+sg_plant_metrics <- as.numeric(length(sg_eq[sg_eq$PlantMetric == "Y", ]))
+sg_eq_percent <- round((sg_plant_metrics/sg_papers_total*100),1)
+
+
+```
+
+Most of the blue carbon literature in the WIO focuses on plant carbon stocks (`r sg_plant_studies_total + sg_plant_studies_total` studies; Fig. Xb); with `r mg_AGB_MgDWha`% of mangrove publications and `r sg_AGB_gDWm2`%  seagrass publications providing aboveground biomass (e.g., Cohen 2013 and Belshe 2018). Plant belowground biomass data were present in `r mg_BGC_MgCha` %  of mangrove and `r sg_BGB_gDWm2`% of seagrass studies (e.g.,Trettin 2016 and Gullstrom 2018).`r sg_eq_percent`% of seagrass and `r mg_eq_percent`% of mangrove studies are testing species- or site-specific allometric models (e.g., Abud 2017 and Arias-Ortiz 2020) to estimate plant biomass and/or related carbon stock. There is four mangrove studies that are reporting wood densities (e.g., Guillerot 2018). 
+
+```{r,echo=T,include=F}
+##MANGROVES studies on soil carbon stock (SOC_MgCha)========
+mg_soil_studies <- mg %>%
+  filter(SOC_MgCha>0) %>%
+  summarize(mg_soil_studies = n_distinct(Reference)) %>%
+  arrange(desc(mg_soil_studies))
+
+mg_soil_studies_total <-sum(mg_soil_studies$mg_soil_studies,na.rm=T)
+mg_soil_OC_percent <- round((mg_soil_studies_total/mg_total*100),1)
+
+
+#SEAGRASS studies on soil carbon stock (SOC_MgCha)========
+sg_soil_studies <- sg %>%
+  filter(SOC_MgCha>0) %>%
+  summarize(sg_soil_studies = n_distinct(Reference)) %>%
+  arrange(desc(sg_soil_studies))
+
+sg_soil_studies_total <-sum(sg_soil_studies$sg_soil_studies,na.rm=T)
+sg_soil_OC_percent <- round((sg_soil_studies_total/sg_total*100),1)
+
+
+#Shallow Core Depths========
+shallow_depth_cm <- 10
+
+#In mangroves
+mg_soil_shallow <- mg %>%
+  filter(DownToDepth_cm < shallow_depth_cm) %>%
+  #group_by(Country)%>% # to see ref-s by country
+  summarize(mg_soil_studies = n_distinct(Reference)) %>%
+  arrange(desc(mg_soil_studies))
+
+mg_soil_shallow_percent <- as.numeric(round((mg_soil_shallow/mg_total*100),1))
+
+#In seagrassses:
+sg_soil_shallow <- sg %>%
+  filter(DownToDepth_cm < shallow_depth_cm) %>%
+  #group_by(Country)%>% # to see ref-s by country
+  summarize(sg_soil_studies = n_distinct(Reference)) %>%
+  arrange(desc(sg_soil_studies))
+
+sg_soil_shallow_percent <- as.numeric(round((sg_soil_shallow/sg_total*100),1))
+
+
+#Deep Core Depths========
+#In mangroves:
+mg_soil_deep <- mg %>%
+  filter(DownToDepth_cm > shallow_depth_cm) %>%
+  #group_by(Country)%>% # to see ref-s by country
+  summarize(mg_soil_studies = n_distinct(Reference)) %>%
+  arrange(desc(mg_soil_studies))
+
+mg_soil_deep_percent <- as.numeric(round((mg_soil_deep/mg_total*100),1))
+
+#In seagrassses:
+sg_soil_deep <- sg %>%
+  filter(DownToDepth_cm > shallow_depth_cm) %>%
+  #group_by(Country)%>% # to see ref-s by country
+  summarize(sg_soil_studies = n_distinct(Reference)) %>%
+  arrange(desc(sg_soil_studies))
+
+sg_soil_deep_percent <- as.numeric(round((sg_soil_deep/sg_total*100),1))
+
+```
+
+
+
+
+Despite most of the blue carbon stocks are stored within the coastal sediments, only `r mg_soil_OC_percent`%  and `r sg_soil_OC_percent`% of the `r tot` studies included data on soil carbon stock in mangroves and seagrasses, respectively (Fig. Xb). `r mg_soil_shallow_percent`% of mangrove studies and `r sg_soil_shallow_percent`% of seagrass studies report carbon stocks values on shallow soil cores (shorter than `r as.character(shallow_depth_cm)` cm depth; e.g., Hemminga1994; Kristensen2008), while `r mg_soil_deep_percent`% and `r sg_soil_deep_percent`% provide carbon estimates along deeper soil profiles in mangroves and seagrasses, respectively (longer than 10 cm depth, e.g., Langat 2014; Gress 2017). Soil carbon content in the region is usually  calculated via the Walkley-Black Method (X%; e.g., Malgahaes 2019), loss-on-ignition (LOI; %; e.g., Lyimo2002), or an elemental CN analyser (X%; e.g., Middelburg1996). Research that included soil carbon accretion rates comprised small component of the literature (X%) and they were generally focused on detecting Holocene sea-level changes using radiocarbon or Pb210 age dating on sediment cores (e.g., Punwong2013, Woodoffre2015). 
