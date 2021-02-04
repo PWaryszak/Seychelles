@@ -3,15 +3,12 @@ title: "Seychelles Lit Review Results"
 author: "**Pawel Waryszak**"
 date: "Jan 28, 2021"
 output:
-  html_document: 
-    number_sections: yes
+  bookdown::word_document2:
     toc: yes
-  word_document:
-    toc: yes
-  pdf_document:
-    number_sections: yes
-    toc: yes
+  #bookdown::word_document2
+  #bookdown::pdf_document2:
 subtitle:  Deakin University, Blue Carbon Lab
+keywords: "Seychelles Blue Carbon"
 editor_options: 
   chunk_output_type: inline
 ---
@@ -19,7 +16,6 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "C:/Users/BlueCarbon/Documents/00DeakinUni/R/BCL_R/Seychelles")
-knitr::opts_chunk$set(dev='png')
 ```
 
 # Results
@@ -195,7 +191,7 @@ sg_eq_percent <- round((sg_plant_metrics/sg_papers_total*100),1)
 
 ```
 
-Most of the blue carbon literature in the WIO focuses on plant carbon stocks (`r sg_plant_studies_total + sg_plant_studies_total` studies; Fig. Xb); with `r mg_AGB_MgDWha`% of mangrove publications and `r sg_AGB_gDWm2`%  seagrass publications providing aboveground biomass (e.g., Cohen 2013 and Belshe 2018). Plant belowground biomass data were present in `r mg_BGC_MgCha` %  of mangrove and `r sg_BGB_gDWm2`% of seagrass studies (e.g.,Trettin 2016 and Gullstrom 2018).`r sg_eq_percent`% of seagrass and `r mg_eq_percent`% of mangrove studies are testing species- or site-specific allometric models (e.g., Abud 2017 and Arias-Ortiz 2020) to estimate plant biomass and/or related carbon stock. There is four mangrove studies that are reporting wood densities (e.g., Guillerot 2018). 
+Most of the blue carbon literature in the WIO focuses on plant carbon stocks (`r sg_plant_studies_total + sg_plant_studies_total` studies; Fig. Xb); with `r mg_AGB_MgDWha`% of mangrove publications and `r sg_AGB_gDWm2`%  seagrass publications providing aboveground biomass (e.g., Cohen 2013 and Belshe 2018). Plant belowground biomass data were present in `r mg_BGC_MgCha` %  of mangrove and `r sg_BGB_gDWm2`% of seagrass studies (e.g.,Trettin 2016 and Gullstrom 2018). `r sg_eq_percent`% of seagrass and `r mg_eq_percent`% of mangrove studies are testing species- or site-specific allometric models (e.g., Abud 2017 and Arias-Ortiz 2020) to estimate plant biomass and/or related carbon stock. There is four mangrove studies that are reporting wood densities (e.g., Guillerot 2018). 
 
 ```{r,echo=T,include=F}
 ##MANGROVES studies on soil carbon stock (SOC_MgCha)========
@@ -262,6 +258,184 @@ sg_soil_deep_percent <- as.numeric(round((sg_soil_deep/sg_total*100),1))
 ```
 
 
+```{r, echo=T, include=F}
+#CN method description:
+mg_CN_method <- mg %>%
+  filter( SOC_Method !="NA") %>% #Remove blank rows
+  group_by (SOC_Method) %>%
+  summarize(mg_CN_types = n_distinct(Reference)) %>%
+  arrange(desc(mg_CN_types))
+
+#LOI method:
+mg_LOI <- filter(mg_CN_method, SOC_Method=="LOI" )
+mg_LOI_method_percent <- as.numeric(round((mg_LOI[1,2]/mg_total*100),1))
+
+#CN_Analyser method:
+mg_CN_Analyser <- filter(mg_CN_method, SOC_Method=="CN_Analyser" )
+mg_CN_Analyser_method_percent <- as.numeric(round((mg_CN_Analyser[1,2]/mg_total*100),1))
+
+#Walkley-Black Method (Pearson 2005):
+mg_WBlack <- filter(mg_CN_method, SOC_Method=="Walkley-Black Method (Pearson 2005)" )
+mg_WBlack_method_percent <- as.numeric(round((mg_WBlack[1,2]/mg_total*100),1)) 
 
 
-Despite most of the blue carbon stocks are stored within the coastal sediments, only `r mg_soil_OC_percent`%  and `r sg_soil_OC_percent`% of the `r tot` studies included data on soil carbon stock in mangroves and seagrasses, respectively (Fig. Xb). `r mg_soil_shallow_percent`% of mangrove studies and `r sg_soil_shallow_percent`% of seagrass studies report carbon stocks values on shallow soil cores (shorter than `r as.character(shallow_depth_cm)` cm depth; e.g., Hemminga1994; Kristensen2008), while `r mg_soil_deep_percent`% and `r sg_soil_deep_percent`% provide carbon estimates along deeper soil profiles in mangroves and seagrasses, respectively (longer than 10 cm depth, e.g., Langat 2014; Gress 2017). Soil carbon content in the region is usually  calculated via the Walkley-Black Method (X%; e.g., Malgahaes 2019), loss-on-ignition (LOI; %; e.g., Lyimo2002), or an elemental CN analyser (X%; e.g., Middelburg1996). Research that included soil carbon accretion rates comprised small component of the literature (X%) and they were generally focused on detecting Holocene sea-level changes using radiocarbon or Pb210 age dating on sediment cores (e.g., Punwong2013, Woodoffre2015). 
+#Age method description:
+mg_age_method <- mg %>%
+  filter(AgeDating_Method !="NA") %>% #Remove blank rows
+  group_by (AgeDating_Method) %>%
+  summarize(mg_age_types = n_distinct(Reference)) %>% #count distinct refs per SOC_Method
+  arrange(desc(mg_age_types)) 
+
+mg_age_total <-sum(mg_age_method$mg_age_types,na.rm=T)
+mg_age_method_percent <- round((mg_age_total/mg_total*100),1)
+
+
+```
+
+
+Despite most of the blue carbon stocks are stored within the coastal sediments, only `r mg_soil_OC_percent`%  and `r sg_soil_OC_percent`% of the `r tot` studies included data on soil carbon stock in mangroves and seagrasses, respectively (Fig. Xb). `r mg_soil_shallow_percent`% of mangrove studies and `r sg_soil_shallow_percent`% of seagrass studies report carbon stocks values on shallow soil cores (shorter than `r as.character(shallow_depth_cm)` cm depth; e.g., Hemminga1994; Kristensen2008), while `r mg_soil_deep_percent`% and `r sg_soil_deep_percent`% provide carbon estimates along deeper soil profiles in mangroves and seagrasses, respectively (longer than 10 cm depth, e.g., Langat 2014; Gress 2017). Soil carbon content in the region is usually  calculated via the Walkley-Black Method (`r mg_WBlack_method_percent`%; e.g., Malgahaes 2019), loss-on-ignition (LOI; `r mg_LOI_method_percent`%; e.g., Lyimo 2002), or an elemental CN analyser (`r mg_CN_Analyser_method_percent`%; e.g., Middelburg 1996). Research that included soil carbon accretion rates was absent from seagrass studies and comprised small component of the mangrove literature (`r mg_age_method_percent`%). The age-dating in mangroves is generally focused on detecting Holocene sea-level changes using radiocarbon or Pb210 age dating on sediment cores (e.g., Punwong 2013, Woodoffre 2015). 
+
+
+## Location
+```{r, echo=T, include=F}
+#Identified Seychelles Studies:=======
+mg_Seychelles <- mg %>%
+  filter( Country =="Seychelles") %>% 
+  group_by(Location)%>%
+  summarize(Seychelles_Studies = n_distinct(Reference)) %>%
+  arrange(desc(Seychelles_Studies))
+
+mg_Seychelles_studies_total <-sum( mg_Seychelles $ Seychelles_Studies , na.rm=T)
+
+#Mangrove Studies With C-data:
+mg_Seychelles_data <- mg %>%
+  filter( Country =="Seychelles") %>% 
+  filter(AGB_MgDWha>0 |BGB_MgDWha>0 | AGC_MgCha >0 | BGC_MgCha>0 |SOC_MgCha>0) %>%
+  group_by(Location)%>%
+  summarize(Seychelles_Studies = n_distinct(Reference)) %>%
+  arrange(desc(Seychelles_Studies))
+
+mg_Seychelles_studies_WithData <-sum( mg_Seychelles_data $ Seychelles_Studies , na.rm=T)
+
+
+sg_Seychelles <- sg %>%
+  filter( Country =="Seychelles") %>% 
+  group_by(Location)%>%
+  summarize(Seychelles_Studies= n_distinct(Reference)) %>%
+  arrange(desc(Seychelles_Studies))
+
+sg_Seychelles_studies_total <-sum( sg_Seychelles $ Seychelles_Studies ,na.rm=T)
+
+#Seagrass studies With C-data:
+sg_Seychelles_data <- sg %>%
+  filter( Country =="Seychelles") %>% 
+  filter(AGB_gDWm2>0 |BGB_gDWm2>0 | AGC_MgCha >0 | BGC_MgCha>0) %>%
+  group_by(Location)%>%
+  summarize(Seychelles_Studies = n_distinct(Reference)) %>%
+  arrange(desc(Seychelles_Studies))
+
+sg_Seychelles_studies_WithData <-sum( sg_Seychelles_data $ Seychelles_Studies , na.rm=T)
+
+
+sg_mg_Seychelles_studies <- mg_Seychelles_studies_total + sg_Seychelles_studies_total
+sg_mg_Seychelles_studies_WithData<-sg_Seychelles_studies_WithData+mg_Seychelles_studies_WithData 
+```
+
+
+Blue carbon research in the SWIO has been mainly conducted along the mainland East African coast (Figure 3), revealing a major geographical gap in the SIDS. Within the region, most studies have taken place in the coastal ecosystems of Kenya (mainly Gazi Bay), Tanzania (particularly Zanzibar Island and the Rufiji River Delta), and Mozambique (mainly Inhaca Island). Despite we identified `r sg_mg_Seychelles_studies` potential studies in Seychelles, only `r sg_mg_Seychelles_studies_WithData` included relevant datasets of coastal carbon stocks, emphasizing the need of further blue carbon research in the region.  
+
+# Mangrove carbon stock summary 
+
+## Trends in literature 
+
+```{r,echo=T,include=F}
+#C-Stock studies in mangroves==========
+mg_stock <- mg %>%
+  filter(AGB_MgDWha>0 |BGB_MgDWha>0 | AGC_MgCha >0 | BGC_MgCha>0 |SOC_MgCha>0) %>%
+  summarize(Stock_Studies = n_distinct(Reference)) %>%
+  arrange(desc(Stock_Studies))
+
+mg_stock_studies <-sum( mg_stock $ Stock_Studies, na.rm=T)
+
+#Aboveground C-stock studies:
+mg_stock_aboveground <- mg %>%
+  filter(AGB_MgDWha>0 | AGC_MgCha >0) %>%
+  summarize(Stock_Studies = n_distinct(Reference)) %>%
+  arrange(desc(Stock_Studies))
+
+mg_stock_aboveground_studies <-sum( mg_stock_aboveground $ Stock_Studies, na.rm=T)
+
+#Belowground C-stock studies:
+mg_stock_belowground <- mg %>%
+  filter(BGB_MgDWha>0 | BGC_MgCha>0) %>%
+  summarize(Stock_Studies = n_distinct(Reference)) %>%
+  arrange(desc(Stock_Studies))
+
+mg_stock_belowground_studies <-sum( mg_stock_belowground $ Stock_Studies, na.rm=T)
+
+```
+
+
+A total of `r mg_stock_studies` studies reports mangrove carbon stocks from the WIO, including a recent review of African mangrove’s AGC, BGC and SOC by de Jong Cleyndert et al. (2020). The most of these studies aimed to quantify and describe the mangrove carbon stocks for a particular SWIO site or region. A number of the reional mangrove studies compared carbon stocks between certain ecosystem properties and stressors. For example: 
+
+* Across canopy types or heights (Bandeira et al. 2009; Jones et al. 2015; Trettin et al. 2016) 
+
+* From natural forests to those planted or reforested (e.g., Bosire et al. 2003; Tamooh et al. 2008; Kairo et al. 2009; Mutua et al. 2011) 
+
+* Across different levels of human intervention (e.g., Kamau 2015, Bosire 2014, Msangameno 2017) 
+
+From the identified `r mg_stock_studies` studies, `r mg_stock_aboveground_studies`% focused on ABG/AGC, while only `r mg_stock_belowground_studies`% included BGB/BGC datasets. The relatively few studies on mangrove BGB are likely due to the difficult and tedious excavation conditions required to sample the root and rhizome system of mangroves. 
+ 
+Only `r mg_soil_studies_total` studies reported datasets on mangrove SOC stocks.   
+
+Due to the lack of deep soils  .....
+
+Many related mangrove studies that were not included on this review examined litter dynamics (e.g. Gwada & Kairo 2001; Fernando & Bandeira 2009), carbon fluxes (CH2, CH4; ), mangrove productivity (e.g., Githaiga2013) or stable isotopes (e.g., ).  
+
+ 
+## Mangrove biomass and C stock
+
+```{r ,fig.cap="Mangrove Aboveground Stock (tonnes ha^-1^)", echo=F,warning=F}
+#FIG_AGC_Mangrove==========
+mg %>%
+  filter(AGB_MgDWha>0 |BGB_MgDWha>0 | AGC_MgCha >0 | BGC_MgCha>0 |SOC_MgCha>0) %>%
+  ggplot(aes(x= Country, y = AGC_MgCha, color = Country))+
+  geom_boxplot(outlier.size = 0) +
+  geom_jitter()+
+  theme_bw()+
+  theme(legend.position = "none")
+
+```
+
+```{r ,fig.cap="Mangrove Belowground Stock (tonnes ha^-1^)", echo=F,warning=F}
+#FIG_BGC_Mangrove==========
+mg %>%
+  filter(AGB_MgDWha>0 |BGB_MgDWha>0 | AGC_MgCha >0 | BGC_MgCha>0 |SOC_MgCha>0) %>%
+  ggplot(aes(x= Country, y = BGC_MgCha, color = Country))+
+  geom_boxplot(outlier.size = 0) +
+  geom_jitter()+
+  theme_bw()+
+  theme(legend.position = "none")
+
+```
+
+
+```{r,echo=T,include=F}
+#Plant C stock ranges======
+
+#Ranges of belowground carbon stocks:
+min_BGC <- min(mg$BGC_MgCha, na.rm=T)
+max_BGC <- max(mg$BGC_MgCha, na.rm=T)
+
+#Ranges of aboveground carbon stocks:
+min_AGC <- min(mg$AGC_MgCha, na.rm=T)
+max_AGC <- max(mg$AGC_MgCha, na.rm=T)
+
+
+
+```
+
+
+Mangrove AGC and BGC within the SWIO ranged between `r min_AGC`-`r max_AGC` tonnes C ha^-1^ and `r min_BGC`-`r max_BGC` tonnes C ha^-1^, respectively (Figure XYZ; Table S1). Although these values sit  within the global ranges reported for tropical mangroves (_____; REF), the wide AGC and BGC variability in the SWIO indicates mangrove stocks are largely influenced by the site conditions, species mix and forest structure (REF). Variability among mangrove species and locations may be further exacerbated by methodological or analytical differences across studies. For example, ____________ (See “Allometric Equations” below).  
+
+AGC and BGC estimates varied considerably across the SWIO countries and sites. For example, _______________. Variation across sites was evidenced in _______. Forests with a mix of mangrove species had a mean AGC of ___ ±___ ton C ha-1, ranging from ____ to _____ ton C ha-1. In terms of mangrove species, the highest AGC was recorded for monospecific stands of _______ in ________ (ton C ha-1), _______ in __________ (ton C ha-1) and __________ in __________ (ton C ha-1; Fig. X; Table S1). These three species most often store the highest AGC stocks in the region given they tend to reach the tallest heights (> X m) and hold the widest DBH (> X cm). The lowest AGC was recorded for the short mangrove ________ (ton C ha-1) who rarely exceeds X m height or X cm DBH.  
