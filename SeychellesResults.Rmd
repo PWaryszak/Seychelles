@@ -3,7 +3,7 @@ title: "Seychelles Lit Review Results"
 author: "**Pawel Waryszak**"
 date: "Jan 28, 2021"
 output:
-  bookdown::word_document2:
+  bookdown::html_document2:
     toc: yes
   #bookdown::word_document2
   #bookdown::pdf_document2:
@@ -393,29 +393,63 @@ Due to the lack of deep soils  .....
 Many related mangrove studies that were not included on this review examined litter dynamics (e.g. Gwada & Kairo 2001; Fernando & Bandeira 2009), carbon fluxes (CH2, CH4; ), mangrove productivity (e.g., Githaiga2013) or stable isotopes (e.g., ).  
 
  
-## Mangrove biomass and C stock
+## Mangrove C stock
 
-```{r ,fig.cap="Mangrove Aboveground Stock (tonnes ha^-1^)", echo=F,warning=F}
-#FIG_AGC_Mangrove==========
-mg %>%
-  filter(AGB_MgDWha>0 |BGB_MgDWha>0 | AGC_MgCha >0 | BGC_MgCha>0 |SOC_MgCha>0) %>%
-  ggplot(aes(x= Country, y = AGC_MgCha, color = Country))+
-  geom_boxplot(outlier.size = 0) +
-  geom_jitter()+
-  theme_bw()+
-  theme(legend.position = "none")
+```{r ,fig.cap="Mangrove aboveground and belowground Stock (tonnes ha^-1^ ,+SE)", echo=F,warning=F}
 
-```
+#Plot Mangrove Plant C-Stock by Country (mean +- SE):=========
+#AboveGround Carbon:
+mg_plant_above <- select (mg, Country,  BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha ) %>%
+  #If "AGC_MgCha" present keep it  and if not we convert aboveground biomass to C by * 0.464
+  mutate(Plant_C_Mgha = ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha)) %>%
+  group_by(Country) %>%    #delete this line to get overall plant_C average
+  summarise(AV=mean(Plant_C_Mgha, na.rm = T),
+            SD=sd(Plant_C_Mgha, na.rm = T),
+            N = length(Plant_C_Mgha),
+            SE= SD / sqrt(N)) %>%
+  mutate (Stock = "Aboveground")
 
-```{r ,fig.cap="Mangrove Belowground Stock (tonnes ha^-1^)", echo=F,warning=F}
-#FIG_BGC_Mangrove==========
-mg %>%
-  filter(AGB_MgDWha>0 |BGB_MgDWha>0 | AGC_MgCha >0 | BGC_MgCha>0 |SOC_MgCha>0) %>%
-  ggplot(aes(x= Country, y = BGC_MgCha, color = Country))+
-  geom_boxplot(outlier.size = 0) +
-  geom_jitter()+
-  theme_bw()+
-  theme(legend.position = "none")
+
+#Belowground Carbon:
+mg_plant_below <- select (mg, Country,  BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha ) %>%
+  #If "BGC_MgCha" present iwe keep it  and if not we convert belowground biomass to C by * 0.464
+  mutate(Plant_C_Mgha = ifelse(BGC_MgCha > 0, BGC_MgCha, 0.464 * BGB_MgDWha)) %>%
+    group_by(Country) %>%    #delete this line to get overall plant_C average
+    summarise(AV = mean(Plant_C_Mgha, na.rm = T),
+            SD = sd(Plant_C_Mgha, na.rm = T),
+            N  = length(Plant_C_Mgha),
+            SE = SD / sqrt(N)) %>%
+    mutate (Stock = "Belowground")
+
+#Merge plant above and below carbo data together:
+ab <- rbind (mg_plant_above, mg_plant_below)%>%
+  #Turning belowground stock into negative values for plotting.
+  mutate(AV= ifelse(Stock =="Aboveground",AV, AV*-1)) %>%
+  na.omit()
+
+#Draw a figure:
+MyBreaks <- c(-300, -200,-100, -50, 0, 50, 100, 200,300)
+
+plot_mangrove_plant <- ggplot(ab, aes(x=as.factor(Country), y=AV, fill = Stock))+
+  geom_bar(position="identity", stat="identity")+
+  geom_errorbar( aes(ymin= AV+SE, ymax = AV-SE), width=.4)+
+  geom_hline(yintercept=0)+
+  scale_y_continuous(breaks = MyBreaks,labels = abs(MyBreaks), limits = c(-300,300))+ #abs to remove negative values on y-axis below 0
+  scale_fill_manual(values = c("#00FF00","#006633"))+
+  xlab("Country")+ ylab(bquote("Plant carbon stock " (Mg*~ha^-1)))+
+  ggtitle("Mangroves")+
+  theme_classic()+
+  theme(axis.text.x=element_text(vjust=0.5,size=12),
+        axis.text.y=element_text(size=12),
+        axis.title.y=element_text(size=20),
+        legend.position = c(.2, .85),
+        legend.text = element_text(size = 9),
+        legend.title = element_text(face = "italic", size=10),
+        plot.title = element_text(hjust = 0.5,lineheight=1.2, face="bold",size=20))
+
+plot_mangrove_plant
+
+
 
 ```
 
@@ -423,19 +457,93 @@ mg %>%
 ```{r,echo=T,include=F}
 #Plant C stock ranges======
 
-#Ranges of belowground carbon stocks:
-min_BGC <- min(mg$BGC_MgCha, na.rm=T)
-max_BGC <- max(mg$BGC_MgCha, na.rm=T)
-
 #Ranges of aboveground carbon stocks:
-min_AGC <- min(mg$AGC_MgCha, na.rm=T)
-max_AGC <- max(mg$AGC_MgCha, na.rm=T)
+min_AGC <- round(min(mg$AGC_MgCha, na.rm=T),1)
+max_AGC <- round(max(mg$AGC_MgCha, na.rm=T),1)
 
+
+#Ranges of belowground carbon stocks:
+min_BGC <- round(min(mg$BGC_MgCha, na.rm=T),1)
+max_BGC <- round(max(mg$BGC_MgCha, na.rm=T),1)
+
+#Range og stocks per studies:========
+#Compare methods for lowest and highest estimates of AGB
+mg_stock_range <- mg %>%
+  filter(AGB_MgDWha>0 | AGC_MgCha >0) %>%
+  group_by(AGC_MgCha,Reference) %>%
+  summarize(Stock_Studies = n_distinct(Reference)) %>%
+  arrange(desc(AGC_MgCha)) #0.51400	Gang-Agatsiva1992 and 303.92157	Alavaisha2016
 
 
 ```
 
 
-Mangrove AGC and BGC within the SWIO ranged between `r min_AGC`-`r max_AGC` tonnes C ha^-1^ and `r min_BGC`-`r max_BGC` tonnes C ha^-1^, respectively (Figure XYZ; Table S1). Although these values sit  within the global ranges reported for tropical mangroves (_____; REF), the wide AGC and BGC variability in the SWIO indicates mangrove stocks are largely influenced by the site conditions, species mix and forest structure (REF). Variability among mangrove species and locations may be further exacerbated by methodological or analytical differences across studies. For example, ____________ (See “Allometric Equations” below).  
+Mangrove AGC and BGC within the SWIO ranged between `r min_AGC`-`r max_AGC` tonnes C ha^-1^ and `r min_BGC`-`r max_BGC` tonnes C ha^-1^, respectively (Figure XYZ; Table S1). Although these values sit  within the global ranges reported for tropical mangroves (_____; REF), the wide AGC and BGC variability in the SWIO indicates mangrove stocks are largely influenced by the site conditions, species mix and forest structure (REF). Variability among mangrove species and locations may be further exacerbated by methodological or analytical differences across studies. For example, **check and compare 0.51400 t/ha in	Gang-Agatsiva1992 and 303.92157	t/ha in Alavaisha2016** (See also “Allometric Equations” below).
+
+
+```{r ,fig.cap="Mangrove aboveground and belowground stock by species (tonnes ha^-1^ ,+SE)", echo=F,warning=F}
+
+#Plot Mangrove Plant C-Stock by Species (mean +- SE):=========
+#AboveGround Carbon:
+mg_species_above <-select(mg,Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha ) %>%
+  filter(Species !="Admixture")%>%
+  #we convert aboveground biomass to C by * 0.464 if not reported:
+  mutate(Plant_C_Mgha = ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha)) %>%
+  group_by(Species) %>%    #delete this line to get overall plant_C average
+  summarise(AV=mean(Plant_C_Mgha, na.rm = T),
+            SD=sd(Plant_C_Mgha, na.rm = T),
+            N = length(Plant_C_Mgha),
+            SE= SD / sqrt(N)) %>%
+  mutate (Stock = "Aboveground") %>%
+    na.omit() 
+
+
+#Belowground Carbon:
+mg_species_below <-select(mg, Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha) %>%
+    filter(Species !="Admixture")%>%
+
+  #we convert aboveground biomass to C by * 0.464 if not reported:
+  mutate(Plant_C_Mgha = ifelse(BGC_MgCha > 0, BGC_MgCha, 0.464 * BGB_MgDWha)) %>%
+    group_by(Species) %>%    #delete this line to get overall plant_C average
+    summarise(AV = mean(Plant_C_Mgha, na.rm = T),
+            SD = sd(Plant_C_Mgha, na.rm = T),
+            N  = length(Plant_C_Mgha),
+            SE = SD / sqrt(N)) %>%
+    mutate (Stock = "Belowground")%>%
+      na.omit() 
+
+#Merge plant above and below carbo data together:
+ab_species <- rbind (mg_species_above, mg_species_below)%>%
+  #Turning belowground stock into negative values for plotting.
+  mutate(AV= ifelse(Stock =="Aboveground",AV, AV*-1)) %>%
+  na.omit()
+
+#Draw a figure:
+MyBreaks_sp <- c( -200,-100, -50, 0, 50, 100, 200)
+
+plot_mangrove_species <- ggplot(ab_species, aes(x=as.factor(Species), y=AV, fill = Stock))+
+  geom_bar(position="identity", stat="identity")+
+  geom_errorbar( aes(ymin= AV+SE, ymax = AV-SE), width=.4)+
+  geom_hline(yintercept=0)+
+  scale_y_continuous(breaks = MyBreaks_sp,labels = abs(MyBreaks_sp), limits = c(-300,300))+ #abs to remove negative values on y-axis below 0
+  scale_fill_manual(values = c("#00FF00","#006633"))+
+  xlab("Mangrove species")+ ylab(bquote("Plant carbon stock " (Mg*~ha^-1)))+
+  ggtitle("Mangrove species")+
+  theme_classic()+
+  theme(axis.text.x=element_text(vjust=0.5,size=12),
+        axis.text.y=element_text(size=12),
+        axis.title.y=element_text(size=20),
+        legend.position = c(.2, .85),
+        legend.text = element_text(size = 9),
+        legend.title = element_text(face = "italic", size=10),
+        plot.title = element_text(hjust = 0.5,lineheight=1.2, face="bold",size=20))
+
+plot_mangrove_species
+
+
+```
+
+
+
 
 AGC and BGC estimates varied considerably across the SWIO countries and sites. For example, _______________. Variation across sites was evidenced in _______. Forests with a mix of mangrove species had a mean AGC of ___ ±___ ton C ha-1, ranging from ____ to _____ ton C ha-1. In terms of mangrove species, the highest AGC was recorded for monospecific stands of _______ in ________ (ton C ha-1), _______ in __________ (ton C ha-1) and __________ in __________ (ton C ha-1; Fig. X; Table S1). These three species most often store the highest AGC stocks in the region given they tend to reach the tallest heights (> X m) and hold the widest DBH (> X cm). The lowest AGC was recorded for the short mangrove ________ (ton C ha-1) who rarely exceeds X m height or X cm DBH.  
