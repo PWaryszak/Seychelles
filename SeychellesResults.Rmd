@@ -395,7 +395,7 @@ Many related mangrove studies that were not included on this review examined lit
  
 ## Mangrove C stock
 
-```{r ,fig.cap="Mangrove aboveground and belowground Stock (tonnes ha^-1^ ,+SE)", echo=F,warning=F}
+```{r ,fig.cap="Mangrove aboveground and belowground Stock (tonnes ha^-1^ ,±SE)", echo=F,warning=F,message=F}
 
 #Plot Mangrove Plant C-Stock by Country (mean +- SE):=========
 #AboveGround Carbon:
@@ -408,6 +408,7 @@ mg_plant_above <- select (mg, Country,  BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_Mg
             N = length(Plant_C_Mgha),
             SE= SD / sqrt(N)) %>%
   mutate (Stock = "Aboveground")
+
 
 
 #Belowground Carbon:
@@ -449,6 +450,11 @@ plot_mangrove_plant <- ggplot(ab, aes(x=as.factor(Country), y=AV, fill = Stock))
 
 plot_mangrove_plant
 
+#Boxplot of mangrove species:
+box_sp <- select(mg,Species,AGC_MgCha)%>%
+  na.omit() %>%
+  ggplot( aes(x=as.factor(Species), y=AGC_MgCha, fill = Species))+
+  geom_boxplot()+geom_jitter()
 
 
 ```
@@ -459,34 +465,30 @@ plot_mangrove_plant
 
 #Ranges of aboveground carbon stocks:
 min_AGC <- round(min(mg$AGC_MgCha, na.rm=T),1)
+min_AGC_Country <- mg[which.min(mg$AGC_MgCha), "Country"]
+
 max_AGC <- round(max(mg$AGC_MgCha, na.rm=T),1)
+max_AGC_Country <- mg[which.max(mg$AGC_MgCha), "Country"]
 
 
 #Ranges of belowground carbon stocks:
 min_BGC <- round(min(mg$BGC_MgCha, na.rm=T),1)
 max_BGC <- round(max(mg$BGC_MgCha, na.rm=T),1)
 
-#Range og stocks per studies:========
-#Compare methods for lowest and highest estimates of AGB
-mg_stock_range <- mg %>%
-  filter(AGB_MgDWha>0 | AGC_MgCha >0) %>%
-  group_by(AGC_MgCha,Reference) %>%
-  summarize(Stock_Studies = n_distinct(Reference)) %>%
-  arrange(desc(AGC_MgCha)) #0.51400	Gang-Agatsiva1992 and 303.92157	Alavaisha2016
-
-
 ```
+
 
 
 Mangrove AGC and BGC within the SWIO ranged between `r min_AGC`-`r max_AGC` tonnes C ha^-1^ and `r min_BGC`-`r max_BGC` tonnes C ha^-1^, respectively (Figure XYZ; Table S1). Although these values sit  within the global ranges reported for tropical mangroves (_____; REF), the wide AGC and BGC variability in the SWIO indicates mangrove stocks are largely influenced by the site conditions, species mix and forest structure (REF). Variability among mangrove species and locations may be further exacerbated by methodological or analytical differences across studies. For example, **check and compare 0.51400 t/ha in	Gang-Agatsiva1992 and 303.92157	t/ha in Alavaisha2016** (See also “Allometric Equations” below).
 
 
-```{r ,fig.cap="Mangrove aboveground and belowground stock by species (tonnes ha^-1^ ,+SE)", echo=F,warning=F}
+```{r ,fig.cap="Mangrove aboveground and belowground stock by species (tonnes ha^-1^ ,±SE)", echo=F,warning=F, message=F}
 
 #Plot Mangrove Plant C-Stock by Species (mean +- SE):=========
 #AboveGround Carbon:
-mg_species_above <-select(mg,Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha ) %>%
-  filter(Species !="Admixture")%>%
+mg_species_above <-select (mg, Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha ) %>%
+  #filter(Species !="Admixture")%>% #in case we want mono-stands only
+  
   #we convert aboveground biomass to C by * 0.464 if not reported:
   mutate(Plant_C_Mgha = ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha)) %>%
   group_by(Species) %>%    #delete this line to get overall plant_C average
@@ -500,7 +502,7 @@ mg_species_above <-select(mg,Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWh
 
 #Belowground Carbon:
 mg_species_below <-select(mg, Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha) %>%
-    filter(Species !="Admixture")%>%
+  #filter(Species !="Admixture")%>% #in case we want mono-stands only
 
   #we convert aboveground biomass to C by * 0.464 if not reported:
   mutate(Plant_C_Mgha = ifelse(BGC_MgCha > 0, BGC_MgCha, 0.464 * BGB_MgDWha)) %>%
@@ -517,6 +519,7 @@ ab_species <- rbind (mg_species_above, mg_species_below)%>%
   #Turning belowground stock into negative values for plotting.
   mutate(AV= ifelse(Stock =="Aboveground",AV, AV*-1)) %>%
   na.omit()
+
 
 #Draw a figure:
 MyBreaks_sp <- c( -200,-100, -50, 0, 50, 100, 200)
@@ -540,10 +543,125 @@ plot_mangrove_species <- ggplot(ab_species, aes(x=as.factor(Species), y=AV, fill
 
 plot_mangrove_species
 
+#Mean and SE Admixture Carbons:
+mean_mg_carbon_mixed_above <- round(as.numeric(ab_species[ab_species$Species=="Admixture" & ab_species$Stock=="Aboveground","AV" ]),1)
+
+SE_mg_carbon_mixed_above <- round(as.numeric(ab_species[ab_species$Species=="Admixture" & ab_species$Stock=="Aboveground","SE" ]),1)
+
+```
+
+```{r,echo=F,include=F,warning=F, message=F}
+#C-stock range per  studies:========
+#Compare methods for lowest and highest estimates of AGC between studies
+mg_stock_range <- mg %>%
+  filter(AGB_MgDWha>0 | AGC_MgCha >0) %>%
+  group_by(AGC_MgCha,Reference) %>%
+  summarize(Stock_Studies = n_distinct(Reference)) %>%
+  arrange(desc(AGC_MgCha)) #0.51400	Gang-Agatsiva1992 and 303.92157	Alavaisha2016
+
+#C-stock range per location:========
+#Compare methods for lowest and highest estimates of AGC between sites (locations):
+mg_stock_range_location <- mg %>%
+  select(AGB_MgDWha, AGC_MgCha,Reference,Location,Country) %>%
+  filter(AGB_MgDWha>0 | AGC_MgCha >0) %>%
+  group_by(Reference) %>%
+  mutate(Min_C = min(AGC_MgCha),
+         Max_C = max(AGC_MgCha),
+         C_Range = Max_C - Min_C )%>%
+  #summarize(Stock_Studies = n_distinct(Reference)) %>%
+  arrange(desc(C_Range)) #	Alavaisha2016
+
 
 ```
 
 
 
+```{r, echo=F,warning=F, message=F,include=F}
+#Min and Max Carbon stock within sites
+Min_WithinSite <- as.numeric(mg_stock_range_location[1, "Min_C"])
+Min_WithinSite_Location <- (mg_stock_range_location[1, "Location"])
+Min_WithinSite_Country <- (mg_stock_range_location[1, "Country"])
+High_WithinSiteVariation_Reference <- (mg_stock_range_location[1, "Reference"])
 
-AGC and BGC estimates varied considerably across the SWIO countries and sites. For example, _______________. Variation across sites was evidenced in _______. Forests with a mix of mangrove species had a mean AGC of ___ ±___ ton C ha-1, ranging from ____ to _____ ton C ha-1. In terms of mangrove species, the highest AGC was recorded for monospecific stands of _______ in ________ (ton C ha-1), _______ in __________ (ton C ha-1) and __________ in __________ (ton C ha-1; Fig. X; Table S1). These three species most often store the highest AGC stocks in the region given they tend to reach the tallest heights (> X m) and hold the widest DBH (> X cm). The lowest AGC was recorded for the short mangrove ________ (ton C ha-1) who rarely exceeds X m height or X cm DBH.  
+
+Max_WithinSite <- as.numeric(mg_stock_range_location[1, "Max_C"])
+
+#C-stocks ranges in mixed mangrove forest:=======
+AGC_mixed <- select(mg, AGC_MgCha, AGB_MgDWha, Species, Country, Location ) %>%
+  filter(Species == "Admixture")%>% #=  mixed mangrove forest
+  
+#Turning biomass if no AGC into AGC (above ground carbon):
+mutate(Plant_C_Mgha =ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha)) 
+
+min_mixed_above_carbon <-  round(min(AGC_mixed$Plant_C_Mgha, na.rm=T),1)     
+max_mixed_above_carbon <-  round(max(AGC_mixed$Plant_C_Mgha, na.rm=T),1)     
+
+#C-stocks ranges withing Species (monospecific stands):=======
+AGC_species <- select(mg, AGC_MgCha, AGB_MgDWha, Species,Country, Location) %>%
+filter(Species != "Admixture") %>% #Exclude mixed forest
+  
+#Turning biomass if no AGC into AGC (above ground carbon):
+mutate(Plant_C_Mgha =ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha))  %>%
+arrange(desc(Plant_C_Mgha))
+
+#Cstock per species from:
+min_sp_above_carbon <-  round(min(AGC_species$Plant_C_Mgha, na.rm=T),1)
+min_sp_above_carbon_species  <- AGC_species[which.min(AGC_species$Plant_C_Mgha),"Species"]
+min_sp_above_carbon_country <- AGC_species[which.min(AGC_species$Plant_C_Mgha),"Country"]
+
+#Cstock per species to max of:
+max_sp_above_carbon <-  round(max(AGC_species$Plant_C_Mgha, na.rm=T),1)
+max_sp_above_carbon_species1  <- AGC_species[which.max(AGC_species$Plant_C_Mgha),"Species"]
+max_sp_above_carbon_country1 <- AGC_species[which.max(AGC_species$Plant_C_Mgha),"Country"]
+
+#C-stock of second max species:
+AGC_species2 <- AGC_species [- which.max(AGC_species$Plant_C_Mgha), ]
+max_sp_above_carbon_species2  <- AGC_species2[which.max(AGC_species2$Plant_C_Mgha),"Species"]
+max_sp_above_carbon_country2 <- AGC_species2[which.max(AGC_species2$Plant_C_Mgha),"Country"]
+
+#C-stock of third max species (all the same species, so I report only one):
+AGC_species3 <- AGC_species2 [- which.max(AGC_species2$Plant_C_Mgha), ]
+max_sp_above_carbon_species3  <- AGC_species3[which.max(AGC_species3$Plant_C_Mgha),"Species"]
+max_sp_above_carbon_country3 <- AGC_species2[which.max(AGC_species3$Plant_C_Mgha),"Country"]
+
+
+
+#Height, DBH, Density by mangrove species======
+mg_height <- select(mg, Height_m,DBH_cm,TreeDensity_ha, Species)%>%
+  group_by(Species) %>%
+    summarise(AV_Height_m = mean(Height_m, na.rm = T),
+            SD = sd(AV_Height_m, na.rm = T),
+            N  = length(AV_Height_m),
+            SE = SD / sqrt(N)) %>%
+   arrange(desc(AV_Height_m))
+
+mg_DBH_cm <- select(mg, Height_m,DBH_cm,TreeDensity_ha, Species)%>%
+  group_by(Species) %>%
+    summarise(AV_DBH_cm  = mean(Height_m, na.rm = T),
+            SD = sd(AV_DBH_cm , na.rm = T),
+            N  = length(AV_DBH_cm ),
+            SE = SD / sqrt(N)) %>%
+   arrange(desc(AV_DBH_cm ))
+
+mg_TreeDensity_ha <- select(mg, Height_m,TreeDensity_ha,TreeDensity_ha, Species)%>%
+  group_by(Species) %>%
+    summarise(AV_TreeDensity_ha  = mean(Height_m, na.rm = T),
+            SD = sd(AV_TreeDensity_ha , na.rm = T),
+            N  = length(AV_TreeDensity_ha ),
+            SE = SD / sqrt(N)) %>%
+   arrange(desc(AV_TreeDensity_ha ))
+
+max_sp_above_height <-  round(max(mg_height$AV_Height_m, na.rm=T),1)
+max_sp_above_carbon_species1  <- AGC_species[which.max(AGC_species$Plant_C_Mgha),"Species"]
+max_sp_above_carbon_country1 <- AGC_species[which.max(AGC_species$Plant_C_Mgha),"Country"]
+
+
+```
+
+
+AGC and BGC estimates varied considerably across the SWIO countries and sites. For example, the lowest mean AGC in mangroves of `r min_AGC` tonnes ha^-1^  was reported in `r min_AGC_Country` and the highest mean AGC of `r max_AGC` tonnes ha^-1^ in `r max_AGC_Country`. Variation across sites was evidenced in `r High_WithinSiteVariation_Reference`. Forests with a mix of mangrove species had a mean AGC of `r mean_mg_carbon_mixed_above` ±`r SE_mg_carbon_mixed_above`  tonnes C ha^-1^, ranging from `r min_mixed_above_carbon` to `r min_mixed_above_carbon` tonnes C ha^-1^. In terms of mangrove species, the highest AGC was recorded for monospecific stands of `r max_sp_above_carbon_species1` in `r max_sp_above_carbon_country1` (tonnes C ha^-1^; Fig. X; Table S1). Interestingly, the tallest heights of `r ` ± `r` in the region  was reached by  and  the widest DBH of `r ` ± `r ` by. The lowest AGC was recorded for (tonnes C ha^-1^) with height`r ` ± `r` of and DBH of `r ` ± `r` .
+
+
+```{r, echo=F,warning=F, message=F,include=F}
+
+```
