@@ -1,13 +1,13 @@
 ---
-title: "Seychelles Lit Review Results"
+title: "Seychelles Lit Review"
+subtitle: "Overall Summary and Mangrove Results"
 author: "**Pawel Waryszak**"
-date: "Jan 28, 2021"
+date: "Feb 11, 2021"
 output:
-  bookdown::html_document2:
+  bookdown::word_document2:
     toc: yes
-  #bookdown::word_document2
+  #bookdown::html_document2
   #bookdown::pdf_document2:
-subtitle:  Deakin University, Blue Carbon Lab
 keywords: "Seychelles Blue Carbon"
 editor_options: 
   chunk_output_type: inline
@@ -393,7 +393,7 @@ Due to the lack of deep soils  .....
 Many related mangrove studies that were not included on this review examined litter dynamics (e.g. Gwada & Kairo 2001; Fernando & Bandeira 2009), carbon fluxes (CH2, CH4; ), mangrove productivity (e.g., Githaiga2013) or stable isotopes (e.g., ).  
 
  
-## Mangrove C stock
+## Mangrove plant carbon
 
 ```{r ,fig.cap="Mangrove aboveground and belowground Stock (tonnes ha^-1^ ,±SE)", echo=F,warning=F,message=F}
 
@@ -437,12 +437,13 @@ plot_mangrove_plant <- ggplot(ab, aes(x=as.factor(Country), y=AV, fill = Stock))
   geom_hline(yintercept=0)+
   scale_y_continuous(breaks = MyBreaks,labels = abs(MyBreaks), limits = c(-300,300))+ #abs to remove negative values on y-axis below 0
   scale_fill_manual(values = c("#00FF00","#006633"))+
-  xlab("Country")+ ylab(bquote("Plant carbon stock " (Mg*~ha^-1)))+
+  xlab("Country")+ ylab(bquote("Plant carbon stock "  (Mg*~ha^-1)))+
   ggtitle("Mangroves")+
   theme_classic()+
   theme(axis.text.x=element_text(vjust=0.5,size=12),
         axis.text.y=element_text(size=12),
         axis.title.y=element_text(size=20),
+        axis.title.x=element_text(size=20),
         legend.position = c(.2, .85),
         legend.text = element_text(size = 9),
         legend.title = element_text(face = "italic", size=10),
@@ -530,12 +531,13 @@ plot_mangrove_species <- ggplot(ab_species, aes(x=as.factor(Species), y=AV, fill
   geom_hline(yintercept=0)+
   scale_y_continuous(breaks = MyBreaks_sp,labels = abs(MyBreaks_sp), limits = c(-300,300))+ #abs to remove negative values on y-axis below 0
   scale_fill_manual(values = c("#00FF00","#006633"))+
-  xlab("Mangrove species")+ ylab(bquote("Plant carbon stock " (Mg*~ha^-1)))+
-  ggtitle("Mangrove species")+
+  xlab("Mangrove species")+ ylab(bquote("Plant carbon stock "  (Mg*~ha^-1)))+
+  ggtitle("Mangroves")+
   theme_classic()+
   theme(axis.text.x=element_text(vjust=0.5,size=12),
         axis.text.y=element_text(size=12),
         axis.title.y=element_text(size=20),
+        axis.title.x=element_text(size=20),
         legend.position = c(.2, .85),
         legend.text = element_text(size = 9),
         legend.title = element_text(face = "italic", size=10),
@@ -596,7 +598,7 @@ mutate(Plant_C_Mgha =ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha))
 min_mixed_above_carbon <-  round(min(AGC_mixed$Plant_C_Mgha, na.rm=T),1)     
 max_mixed_above_carbon <-  round(max(AGC_mixed$Plant_C_Mgha, na.rm=T),1)     
 
-#C-stocks ranges withing Species (monospecific stands):=======
+#C-stocks ranges within Species (monospecific stands):=======
 AGC_species <- select(mg, AGC_MgCha, AGB_MgDWha, Species,Country, Location) %>%
 filter(Species != "Admixture") %>% #Exclude mixed forest
   
@@ -651,15 +653,101 @@ mg_TreeDensity_ha <- select(mg, Height_m,TreeDensity_ha,TreeDensity_ha, Species)
             SE = SD / sqrt(N)) %>%
    arrange(desc(AV_TreeDensity_ha ))
 
-max_sp_above_height <-  round(max(mg_height$AV_Height_m, na.rm=T),1)
-max_sp_above_carbon_species1  <- AGC_species[which.max(AGC_species$Plant_C_Mgha),"Species"]
-max_sp_above_carbon_country1 <- AGC_species[which.max(AGC_species$Plant_C_Mgha),"Country"]
+max_sp_above_Height_m<-  round(max(mg$Height_m, na.rm=T),1)
+max_mg_Height_m_sp1  <- mg[which.max(mg$Height_m),"Species"]
+
+max_sp_above_DBH_cm <-  round(max(mg$DBH_cm, na.rm=T),1)
+max_mg_height_sp1  <- mg[which.max(mg$DBH_cm),"Species"]
 
 
 ```
 
 
-AGC and BGC estimates varied considerably across the SWIO countries and sites. For example, the lowest mean AGC in mangroves of `r min_AGC` tonnes ha^-1^  was reported in `r min_AGC_Country` and the highest mean AGC of `r max_AGC` tonnes ha^-1^ in `r max_AGC_Country`. Variation across sites was evidenced in `r High_WithinSiteVariation_Reference`. Forests with a mix of mangrove species had a mean AGC of `r mean_mg_carbon_mixed_above` ±`r SE_mg_carbon_mixed_above`  tonnes C ha^-1^, ranging from `r min_mixed_above_carbon` to `r min_mixed_above_carbon` tonnes C ha^-1^. In terms of mangrove species, the highest AGC was recorded for monospecific stands of `r max_sp_above_carbon_species1` in `r max_sp_above_carbon_country1` (tonnes C ha^-1^; Fig. X; Table S1). Interestingly, the tallest heights of `r ` ± `r` in the region  was reached by  and  the widest DBH of `r ` ± `r ` by. The lowest AGC was recorded for (tonnes C ha^-1^) with height`r ` ± `r` of and DBH of `r ` ± `r` .
+AGC and BGC estimates varied considerably across the SWIO countries and sites. For example, the lowest mean AGC in mangroves of `r min_AGC` (tonnes ha^-1^)  was reported in `r min_AGC_Country` and the highest mean AGC of `r max_AGC` tonnes ha^-1^ in `r max_AGC_Country`. Variation across sites was evidenced in `r High_WithinSiteVariation_Reference`. Forests with a mix of mangrove species had a mean AGC of `r mean_mg_carbon_mixed_above` ±`r SE_mg_carbon_mixed_above`  tonnes C ha^-1^, ranging from `r min_mixed_above_carbon` to `r min_mixed_above_carbon` tonnes C ha^-1^. In terms of mangrove species, the highest AGC was recorded for *`r max_sp_above_carbon_species1`* stands  in `r max_sp_above_carbon_country1` (tonnes C ha^-1^; Fig. X; Table S1). The tallest height of `r max_sp_above_Height_m` m in the region  was reached by `r max_mg_Height_m_sp1`. The widest DBH of `r max_mg_height_sp1` was recorded in stand of *`r max_mg_height_sp1`*. The lowest AGC  of `r min_sp_above_carbon` (tonnes C ha^-1^) was recorded for *`r min_sp_above_carbon_species`*.
+
+
+## Mangrove soil carbon
+
+```{r, echo=F,warning=F, message=F}
+#Plot Mangrove Soil C-Stock by Species and location (mean +- SE):=========
+
+#Averages by Species:
+mg_soil_C_Species <-select (mg, Species, SOC_MgCha, Bulkdensity_gDWmlorcm3, SOC_Percent,  DownToDepth_cm) %>%
+
+  mutate(Soil_C_Mgha = ifelse(SOC_MgCha > 0, SOC_MgCha, 
+                              Bulkdensity_gDWmlorcm3*SOC_Percent*DownToDepth_cm*100)) %>%
+  group_by(Species) %>%    #delete this line to get overall Soil_C average
+ 
+   summarise(AV= mean(Soil_C_Mgha, na.rm = T),
+            SD= sd(Soil_C_Mgha, na.rm = T),
+            N = length(Soil_C_Mgha),
+            SE= SD / sqrt(N)) %>%
+  
+  mutate(data = "Species") 
+
+#Averages by Country:
+mg_soil_C_Country <-select (mg, Country, SOC_MgCha,Bulkdensity_gDWmlorcm3, SOC_Percent,  DownToDepth_cm) %>%
+
+  mutate(Soil_C_Mgha = ifelse(SOC_MgCha > 0, SOC_MgCha, 
+                              Bulkdensity_gDWmlorcm3*SOC_Percent*DownToDepth_cm*100)) %>%
+  group_by(Country) %>%    #delete this line to get overall Soil_C average
+  
+  summarise(AV= mean(Soil_C_Mgha, na.rm = T),
+            SD= sd(Soil_C_Mgha, na.rm = T),
+            N = length(Soil_C_Mgha),
+            SE= SD / sqrt(N))  %>%
+    mutate(data = "Country") %>%
+    rename(Species=Country) 
+
+#Merge Soil above and below carbo data together:
+ab_soil <- rbind (mg_soil_C_Country, mg_soil_C_Species) %>%na.omit()
+
+
+plot_mangrove_soil <- ggplot(ab_soil, aes(x=Species, y=AV, fill=data))+
+  geom_bar(position="identity", stat="identity")+
+  geom_errorbar( aes(ymin= AV+SE, ymax = AV-SE), width=.4)+
+  scale_fill_manual(values = c("#494928","#949447"))+
+  facet_grid (.~data, scales = "free", space = "free")+
+  xlab("")+
+  ylab(bquote("Soil carbon stock "  (Mg*~ha^-1)))+
+  ggtitle("Mangroves")+
+  theme_bw()+
+  theme(axis.text.x=element_text(vjust=0.5, size=12, angle=45),
+        axis.text.y=element_text(size=12),
+        axis.title.y=element_text(size=15),
+        axis.title.x=element_text(size=15, angle=45),
+        legend.position = "none",
+        legend.text = element_text(size = 9),
+        strip.text = element_text(size=15),
+        legend.title = element_text(face = "italic", size=10),
+        plot.title = element_text(hjust = 0.5,lineheight=1.2, face="bold",size=20))
+
+plot_mangrove_soil
+
+```
+
+
+
+
+
+## Allometric equations.
+
+
+
+```{r, echo=F,warning=F, message=F,results='asis'}
+
+library(knitr)
+mg_eq_table <- read_excel("SeychellesMangroveReview.xlsx", sheet = "AllometricEquations")
+
+#Draw a table wtih Allometric equatons examples:
+kable(mg_eq_table[,1:4], 
+      caption="Table X. AGB and BGB allometric equations developed for mangrove species within the SWIO")
+
+
+```
+
+Most blue carbon studies worldwide use general equations published for mangrove forests with similar geomorphological characteristics (e.g., ). However, as recommended by **?????**,  several mangrove studies within the SWIO have developed species-specific or site-specific allometric equations (Table X).
+
 
 
 ```{r, echo=F,warning=F, message=F,include=F}
