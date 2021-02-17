@@ -26,7 +26,7 @@ library(readxl)
 ```
 
 
-```{r,echo=T, include=FALSE}
+```{r,echo=T,eval=T, include=FALSE}
 #Looking at total nuber of studies:
 mg <- read_excel("SeychellesMangroveReview.xlsx", sheet = "Mangrove_BC_stock")
 sg <- read_excel("SeychellesSeagrassReview.xlsx", sheet = "Seagrass_BC_stock")
@@ -45,6 +45,20 @@ sg_studies_past10 <- length(unique(sg_past10$Reference))
 
 
 ```{r,echo=T, include=FALSE}
+#Looking at number of sg studies with AGC in Madagascar:
+sg_AGC_studies_Madagascar <- sg %>%
+  filter(is.na(AGC_MgCha)=="FALSE" | is.na(AGB_gDWm2)=="FALSE") %>%
+  filter( Country == "Madagascar") %>%
+  group_by(Reference)%>%
+  summarize(sg_studies = n_distinct(Reference))
+
+sg_AGC_studies_Madagascar_sum <- as.numeric(sum(sg_AGC_studies_Madagascar$sg_studies))
+
+%>%
+  arrange(desc(sg_studies))# %>%
+  mutate(sg_tot=sum(sg_studies, na.rm=T))
+
+
 #Looking at number of studies per region:
 mg_studies_per_Country <- mg %>%
   group_by(Country) %>%
@@ -85,7 +99,7 @@ Despite the growing recognition on blue carbon stocks for climate change mitigat
 
 ## Ecosystem focus
 
-From the `r tot` studies reviewed, `r round((mg_total/tot*100), 1)`% were based on mangrove ecosystems, while `r round((sg_total/tot*100), 1)`%  focused on seagrass meadows (Fig. Xa). Despite seagrass have higher extent in the WIO ( ha of seagrass vs ha of mangroves), mangrove research is likely favoured given (a) its applicability within REDD+ program; (b) its higher carbon storage and potential for carbon offsetting; (c) easier access to sites and sampling.  The need for additional datasets (eg. mangrove allometric equations and wood density) also increased the number of relevant publications within mangrove ecosystems.
+From the `r mg_studies + sg_studies` studies reviewed, `r round((mg_total/tot*100), 1)`% were based on mangrove ecosystems, while `r round((sg_total/tot*100), 1)`%  focused on seagrass meadows (Fig. Xa). Despite seagrass have higher extent in the WIO ( ha of seagrass vs ha of mangroves), mangrove research is likely favoured given (a) its applicability within REDD+ program; (b) its higher carbon storage and potential for carbon offsetting; (c) easier access to sites and sampling.  The need for additional datasets (eg. mangrove allometric equations and wood density) also increased the number of relevant publications within mangrove ecosystems.
 
 
 ## Datasets summary
@@ -119,7 +133,7 @@ mg_plant_studies_BGB_total <- as.numeric(sum(mg_plant_studies_BGB$mg_plant_studi
 mg_BGC_MgCha <- round((mg_plant_studies_BGB_total/mg_total*100),1)
 
 
-#SEAGRASS (looking at: AGB_gDWm2,AGC_MgCha,BGC_MgCh )===========
+#SEAGRASS studies (looking at: AGB_gDWm2,AGC_MgCha,BGC_MgCh )===========
 sg_plant_studies <- sg %>%
   filter(AGB_gDWm2>0 |BGB_gDWm2>0 | AGC_MgCha >0 | BGC_MgCha>0) %>%
   summarize(sg_plant_studies = n_distinct(Reference)) %>%
@@ -191,7 +205,7 @@ sg_eq_percent <- round((sg_plant_metrics/sg_papers_total*100),1)
 
 ```
 
-Most of the blue carbon literature in the WIO focuses on plant carbon stocks (`r sg_plant_studies_total + sg_plant_studies_total` studies; Fig. Xb); with `r mg_AGB_MgDWha`% of mangrove publications and `r sg_AGB_gDWm2`%  seagrass publications providing aboveground biomass (e.g., Cohen 2013 and Belshe 2018). Plant belowground biomass data were present in `r mg_BGC_MgCha` %  of mangrove and `r sg_BGB_gDWm2`% of seagrass studies (e.g.,Trettin 2016 and Gullstrom 2018). `r sg_eq_percent`% of seagrass and `r mg_eq_percent`% of mangrove studies are testing species- or site-specific allometric models (e.g., Abud 2017 and Arias-Ortiz 2020) to estimate plant biomass and/or related carbon stock. There is four mangrove studies that are reporting wood densities (e.g., Guillerot 2018). 
+Most of the blue carbon literature in the WIO focuses on plant carbon stocks (`r sg_plant_studies_total + mg_plant_studies_total` studies; Fig. Xb); with `r mg_AGB_MgDWha`% of mangrove publications and `r sg_AGB_gDWm2`%  seagrass publications providing aboveground biomass (e.g., Cohen 2013 and Belshe 2018). Plant belowground biomass data were present in `r mg_BGC_MgCha` %  of mangrove and `r sg_BGB_gDWm2`% of seagrass studies (e.g.,Trettin 2016 and Gullstrom 2018). `r sg_eq_percent`% of seagrass and `r mg_eq_percent`% of mangrove studies are testing species- or site-specific allometric models (e.g., Abud 2017 and Arias-Ortiz 2020) to estimate plant biomass and/or related carbon stock. There is four mangrove studies that are reporting wood densities (e.g., Guillerot 2018). 
 
 ```{r,echo=T,include=F}
 ##MANGROVES studies on soil carbon stock (SOC_MgCha)========
@@ -204,7 +218,35 @@ mg_soil_studies_total <-sum(mg_soil_studies$mg_soil_studies,na.rm=T)
 mg_soil_OC_percent <- round((mg_soil_studies_total/mg_total*100),1)
 
 
-#SEAGRASS studies on soil carbon stock (SOC_MgCha)========
+
+#SEAGRASS studies on soil carbon stock ========
+#List distinc seagrass studies:
+sg_carbon_ref_studies <- sg %>%
+  filter(is.na(AGC_MgCha)=="FALSE" | is.na(SOC_MgCha)=="FALSE") %>% #conatain no NA but numbers
+  group_by(Reference) %>%
+  summarize(carbon_studies = n_distinct(Reference)) %>%
+  summarize(carbon_studies_sum = sum (carbon_studies))
+
+sg_carbon_ref_studies_sum <- as.numeric(sg_carbon_ref_studies)
+sg_carbon_ref_studies_percent <- round(sg_carbon_ref_studies_sum / sg_total *100, 1)
+
+#SEAGRASS studies on soil carbon stock (SOC_MgCha) and biomass ========
+#List distinc seagrass studies:
+sg_soil_ref_studies <- sg %>%
+  filter(SOC_MgCha>0) %>%
+  group_by(Reference) %>%
+  summarize(AV=mean(SOC_MgCha))
+
+sg_soil_ref_studies_30cm <- sg %>%
+  filter(DownToDepth_cm >30) %>%
+  filter(SOC_MgCha>0) %>%
+  group_by(Reference) %>%
+  summarize(AV=mean(SOC_MgCha))
+
+sg_30cm_soil_studies_refs <- as.character(sg_soil_ref_studies_30cm $ Reference)
+
+
+#Number of distinct seagrass studies
 sg_soil_studies <- sg %>%
   filter(SOC_MgCha>0) %>%
   summarize(sg_soil_studies = n_distinct(Reference)) %>%
@@ -212,6 +254,15 @@ sg_soil_studies <- sg %>%
 
 sg_soil_studies_total <-sum(sg_soil_studies$sg_soil_studies,na.rm=T)
 sg_soil_OC_percent <- round((sg_soil_studies_total/sg_total*100),1)
+
+#BGC or BGB count of seagrass studies:
+sg_soil_biomass_studies <- sg %>%
+  filter(BGC_MgCha>0  | BGB_gDWm2>0 ) %>%
+  summarize(sg_soil_studies = n_distinct(Reference)) %>%
+  arrange(desc(sg_soil_studies))
+
+sg_soil_BGB_BGC_studies_total <-sum( sg_soil_biomass_studies $ sg_soil_studies,na.rm=T)
+sg_soil_BGB_BGC_percent <- round(( sg_soil_BGB_BGC_studies_total / sg_total*100),1)
 
 
 #Shallow Core Depths========
@@ -395,13 +446,13 @@ Many related mangrove studies that were not included on this review examined lit
  
 ## Mangrove plant carbon
 
-```{r ,fig.cap="Mangrove aboveground and belowground Stock (tonnes ha^-1^ ,±SE)", echo=F,warning=F,message=F}
+```{r ,fig.cap="Mangrove aboveground and belowground carbon stock by country in SWIO region  (tonnes ha^-1^ ,±SE)", echo=F,warning=F,message=F}
 
 #Plot Mangrove Plant C-Stock by Country (mean +- SE):=========
 #AboveGround Carbon:
 mg_plant_above <- select (mg, Country,  BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha ) %>%
-  #If "AGC_MgCha" present keep it  and if not we convert aboveground biomass to C by * 0.464
-  mutate(Plant_C_Mgha = ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha)) %>%
+  #If "AGC_MgCha" present keep it  and if not we convert aboveground biomass to C by * 0.48
+  mutate(Plant_C_Mgha = ifelse(AGC_MgCha > 0, AGC_MgCha, 0.48 * AGB_MgDWha)) %>%
   group_by(Country) %>%    #delete this line to get overall plant_C average
   summarise(AV=mean(Plant_C_Mgha, na.rm = T),
             SD=sd(Plant_C_Mgha, na.rm = T),
@@ -413,8 +464,8 @@ mg_plant_above <- select (mg, Country,  BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_Mg
 
 #Belowground Carbon:
 mg_plant_below <- select (mg, Country,  BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha ) %>%
-  #If "BGC_MgCha" present iwe keep it  and if not we convert belowground biomass to C by * 0.464
-  mutate(Plant_C_Mgha = ifelse(BGC_MgCha > 0, BGC_MgCha, 0.464 * BGB_MgDWha)) %>%
+  #If "BGC_MgCha" present iwe keep it  and if not we convert belowground biomass to C by * 0.39
+  mutate(Plant_C_Mgha = ifelse(BGC_MgCha > 0, BGC_MgCha, 0.39 * BGB_MgDWha)) %>%
     group_by(Country) %>%    #delete this line to get overall plant_C average
     summarise(AV = mean(Plant_C_Mgha, na.rm = T),
             SD = sd(Plant_C_Mgha, na.rm = T),
@@ -462,7 +513,7 @@ box_sp <- select(mg,Species,AGC_MgCha)%>%
 
 
 ```{r,echo=T,include=F}
-#Plant C stock ranges======
+#Magrove plant C stock ranges======
 
 #Ranges of aboveground carbon stocks:
 min_AGC <- round(min(mg$AGC_MgCha, na.rm=T),1)
@@ -489,9 +540,11 @@ Mangrove AGC and BGC within the SWIO ranged between `r min_AGC`-`r max_AGC` tonn
 #AboveGround Carbon:
 mg_species_above <-select (mg, Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha ) %>%
   #filter(Species !="Admixture")%>% #in case we want mono-stands only
-  
-  #we convert aboveground biomass to C by * 0.464 if not reported:
-  mutate(Plant_C_Mgha = ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha)) %>%
+    #If "AGC_MgCha" present keep it  and if not we convert aboveground biomass to C by * 0.48
+  #*Most papers say "Stocks were determined from AGB and BGB using a carbon fraction of 0.48 for AGB and 0.39 for BGB
+  #(Kauffman and Donato 2012; Abino et al. 2014).
+
+  mutate(Plant_C_Mgha = ifelse(AGC_MgCha > 0, AGC_MgCha, 0.48 * AGB_MgDWha)) %>%
   group_by(Species) %>%    #delete this line to get overall plant_C average
   summarise(AV=mean(Plant_C_Mgha, na.rm = T),
             SD=sd(Plant_C_Mgha, na.rm = T),
@@ -505,8 +558,10 @@ mg_species_above <-select (mg, Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgD
 mg_species_below <-select(mg, Species,BGC_MgCha, AGC_MgCha, AGB_MgDWha, BGB_MgDWha) %>%
   #filter(Species !="Admixture")%>% #in case we want mono-stands only
 
-  #we convert aboveground biomass to C by * 0.464 if not reported:
-  mutate(Plant_C_Mgha = ifelse(BGC_MgCha > 0, BGC_MgCha, 0.464 * BGB_MgDWha)) %>%
+  #If "AGC_MgCha" present keep it  and if not we convert aboveground biomass to C by * 0.48
+  #*Most papers say "Stocks were determined from AGB and BGB using a carbon fraction of 0.48 for AGB and 0.39 for BGB
+  #(Kauffman and Donato 2012; Abino et al. 2014).
+  mutate(Plant_C_Mgha = ifelse(BGC_MgCha > 0, BGC_MgCha, 0.39 * BGB_MgDWha)) %>%
     group_by(Species) %>%    #delete this line to get overall plant_C average
     summarise(AV = mean(Plant_C_Mgha, na.rm = T),
             SD = sd(Plant_C_Mgha, na.rm = T),
@@ -579,7 +634,7 @@ mg_stock_range_location <- mg %>%
 
 
 ```{r, echo=F,warning=F, message=F,include=F}
-#Min and Max Carbon stock within sites
+#Min and Max Carbon stock within sites=======
 Min_WithinSite <- as.numeric(mg_stock_range_location[1, "Min_C"])
 Min_WithinSite_Location <- (mg_stock_range_location[1, "Location"])
 Min_WithinSite_Country <- (mg_stock_range_location[1, "Country"])
@@ -593,7 +648,7 @@ AGC_mixed <- select(mg, AGC_MgCha, AGB_MgDWha, Species, Country, Location ) %>%
   filter(Species == "Admixture")%>% #=  mixed mangrove forest
   
 #Turning biomass if no AGC into AGC (above ground carbon):
-mutate(Plant_C_Mgha =ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha)) 
+mutate(Plant_C_Mgha =ifelse(AGC_MgCha > 0, AGC_MgCha, 0.8 * AGB_MgDWha)) 
 
 min_mixed_above_carbon <-  round(min(AGC_mixed$Plant_C_Mgha, na.rm=T),1)     
 max_mixed_above_carbon <-  round(max(AGC_mixed$Plant_C_Mgha, na.rm=T),1)     
@@ -603,7 +658,7 @@ AGC_species <- select(mg, AGC_MgCha, AGB_MgDWha, Species,Country, Location) %>%
 filter(Species != "Admixture") %>% #Exclude mixed forest
   
 #Turning biomass if no AGC into AGC (above ground carbon):
-mutate(Plant_C_Mgha =ifelse(AGC_MgCha > 0, AGC_MgCha, 0.464 * AGB_MgDWha))  %>%
+mutate(Plant_C_Mgha =ifelse(AGC_MgCha > 0, AGC_MgCha, 0.48 * AGB_MgDWha))  %>%
 arrange(desc(Plant_C_Mgha))
 
 #Cstock per species from:
@@ -660,6 +715,41 @@ max_sp_above_DBH_cm <-  round(max(mg$DBH_cm, na.rm=T),1)
 max_mg_height_sp1  <- mg[which.max(mg$DBH_cm),"Species"]
 
 
+#Height, DBH, Density by seagrass species======
+#Turn properties we are interested in to long format:
+sg_properties_long <- select(sg, Height_m,Height_mDensity_m2,AGC_MgCha,BGC_MgCha,Reference) %>%
+  gather(SG_Property, Value, -Reference)
+
+#Use long format data  from mg_properties_long to computer percentages:
+# sg_tot_value is the total number of studies on seagrass:
+
+#Shoot %
+sg_Shoot_Percent <- filter(sg, is.na(ShootDensity_m2)=="FALSE") %>%
+  summarise(shoot_studies = n_distinct(Reference),
+            shoot_studies_percent = round(shoot_studies/sg_tot_value*100),1)
+
+sg_Shoot_Percent_Value <- as.numeric(sg_Shoot_Percent$shoot_studies_percent)# % shoots studies
+
+#Height %:
+sg_Height_m_Percent <- filter(sg, is.na(Height_m)=="FALSE") %>%
+  summarise(Height_m_studies = n_distinct(Reference),
+            Height_m_studies_percent = round(Height_m_studies/sg_tot_value*100),1)
+
+sg_Height_m_Percent_Value <- as.numeric(sg_Height_m_Percent$Height_m_studies_percent)
+
+#Most studied seagrass species:
+sg_Species_n <- select(sg, Species,Reference) %>%
+  group_by(Species) %>% 
+  summarise(N_records= n()) %>%
+  arrange(desc(N_records))
+
+#Most studied mangrove species:
+mg_Species_n <- select(mg, Species,Reference) %>%
+  group_by(Species) %>% 
+  summarise(N_records= n()) %>%
+  arrange(desc(N_records))
+
+
 ```
 
 
@@ -672,15 +762,23 @@ AGC and BGC estimates varied considerably across the SWIO countries and sites. F
 #Plot Mangrove Soil C-Stock by Species and location (mean +- SE):=========
 
 #Averages by Species:
-mg_soil_C_Species <-select (mg, Species, SOC_MgCha, Bulkdensity_gDWmlorcm3, SOC_Percent,  DownToDepth_cm) %>%
+mg_soil_C_Species <-select (mg, Species, SOC_MgCha, Bulkdensity_gDWmlorcm3, SOC_Percent,  DownToDepth_cm, SOM_Percent) %>%
 
   mutate(Soil_C_Mgha = ifelse(SOC_MgCha > 0, SOC_MgCha, 
                               Bulkdensity_gDWmlorcm3*SOC_Percent*DownToDepth_cm*100)) %>%
+  
+#mutate againg to include converstion from OM to OC:
+#Soil organic matter generally contains approximately 56% organic carbon (Brady, 1990). The following #equation was therefore used to estimate percentage soil organic carbon (SOC) from total soil organic matter #(Brady, 1990): SOC% = SOM x 0.56
+
+
+    mutate(Soil_C_Mgha2 = ifelse(Soil_C_Mgha > 0, Soil_C_Mgha, 
+                              Bulkdensity_gDWmlorcm3*SOM_Percent*.56*DownToDepth_cm*100))  %>%
+
   group_by(Species) %>%    #delete this line to get overall Soil_C average
  
-   summarise(AV= mean(Soil_C_Mgha, na.rm = T),
-            SD= sd(Soil_C_Mgha, na.rm = T),
-            N = length(Soil_C_Mgha),
+   summarise(AV= mean(Soil_C_Mgha2, na.rm = T),
+            SD= sd(Soil_C_Mgha2, na.rm = T),
+            N = length(Soil_C_Mgha2),
             SE= SD / sqrt(N)) %>%
   
   mutate(data = "Species") 
@@ -690,11 +788,18 @@ mg_soil_C_Country <-select (mg, Country, SOC_MgCha,Bulkdensity_gDWmlorcm3, SOC_P
 
   mutate(Soil_C_Mgha = ifelse(SOC_MgCha > 0, SOC_MgCha, 
                               Bulkdensity_gDWmlorcm3*SOC_Percent*DownToDepth_cm*100)) %>%
+  
+#mutate againg to include converstion from OM to OC:
+#Soil organic matter generally contains approximately 56% organic carbon (Brady, 1990). The following #equation was therefore used to estimate percentage soil organic carbon (SOC) from total soil organic matter #(Brady, 1990): SOC% = SOM x 0.56
+
+    mutate(Soil_C_Mgha2 = ifelse(Soil_C_Mgha > 0, Soil_C_Mgha, 
+                              Bulkdensity_gDWmlorcm3*SOM_Percent*.56*DownToDepth_cm*100))  %>%
+
   group_by(Country) %>%    #delete this line to get overall Soil_C average
   
-  summarise(AV= mean(Soil_C_Mgha, na.rm = T),
-            SD= sd(Soil_C_Mgha, na.rm = T),
-            N = length(Soil_C_Mgha),
+  summarise(AV= mean(Soil_C_Mgha2, na.rm = T),
+            SD= sd(Soil_C_Mgha2, na.rm = T),
+            N = length(Soil_C_Mgha2),
             SE= SD / sqrt(N))  %>%
     mutate(data = "Country") %>%
     rename(Species=Country) 
@@ -748,6 +853,129 @@ kable(mg_eq_table[,1:4],
 
 Most blue carbon studies worldwide use general equations published for mangrove forests with similar geomorphological characteristics (e.g., ). However, as recommended by **?????**,  several mangrove studies within the SWIO have developed species-specific or site-specific allometric equations (Table X).
 
+
+# Seagrass Results
+
+## TRENDS IN THE LITERATURE
+
+The capacity of seagrass meadows to serve as carbon sinks has received limited scientific attention in the WIO. From the `r sg_total` relevant papers identified, only `r sg_carbon_ref_studies_percent`% of them directly examine seagrass carbon stocks (e.g., Githaiga 2017, Belshe et al. 2018, Gullström et al. 2018, Juma et al. 2020). The remaining studies report either seagrass biomass or carbon stocks as complimentary datasets to ecological or environmental studies (e.g., Mariani 1999, Ndaro and Ólafsson 1999, Vaïtilingon et al. 2003). As highlighted by Bandeira and Björk (2001), seagrass research in the region has largely emphasised on diversity, ecology and ecophysiology.
+
+```{r, echo=F,warning=F, message=F}
+
+
+
+```
+
+Most blue carbon research has been conducted in Kenya and Tanzania thanks to the academic theses of Lyimo (2016), Dahl (2017), Githaiga (2017), Juma (2019), which have led to more than 10 publications in the topic (e.g., (Lyimo et al. 2006, Githaiga et al. 2016, 2017, Dahl et al. 2016, Gullström et al. 2018, Juma et al. 2020). Despite Madagascar holds most of the seagrass in the region, no studies have specifically focussed on carbon stocks and only `r sg_AGC_studies_Madagascar_sum` study included relevant information to estimate seagrass AGB and AGC (Vaïtilingon et al. 2003, Côté-Laurin et al. 2017). Our search only identified three relevant studies from Seychelles: all of them relating to seagrass biometrics and AGB (Aleem 1984, Kalugina-Gutnik et al. 1992, Ingram and Dawson 2001).
+
+The majority of seagrass studies identified deal with plant _____. However only `r sg_soil_OC_percent`% of them directly estimate carbon stocks, with the rest limiting the datasets to seagrass biometrics or biomass. Unsurprisingly all of these studies measured seagrass aboveground stocks (AGB or AGC), but only `r sg_soil_BGB_BGC_percent`% included belowground datasets (BGB or BGC). As suggested by ______, this is likely due to the fact that most of the seagrass biomass/carbon is stored aboveground and considering the constrains of  sampling belowground rhizomes.  
+
+Few studies have examined seagrass SOC stocks, demonstrating a major knowledge gap in the region. From the X studies identified, only three provide  SOC from sediment cores longer than >30 cm (Githaiga2017a; Belshe2018; Gullstrom2018). Several authors report seagrass SOC values from shallow sediment cores (<10 cm depth) when assessing the infauna from seagrass beds (e.g., Ndaro1999; Paula2001, Eklof2005).  
+
+
+## Seagrass carbon 
+
+
+```{r ,fig.cap="Seagrass aboveground and belowground carbon stock by country in SWIO region  (tonnes ha^-1^ ,±SE)", echo=F,warning=F,message=F}
+
+#Plot Seagrass Plant C-Stock by Country (mean +- SE):=========
+#AboveGround Carbon:
+sg_plant_above <- select (sg, Country,  BGC_MgCha, AGC_MgCha, AGB_gDWm2, BGB_gDWm2)%>%
+  #If "AGC_MgCha" present keep it  and if not we convert aboveground biomass to C by * 0.35
+  mutate(Plant_C_Mgha = ifelse(AGC_MgCha > 0, AGC_MgCha, AGB_gDWm2*0.35/100 )) %>% #/100 to convert g/m2 to Mg/ha
+  group_by(Country) %>%    #delete this line to get overall plant_C average
+  summarise(AV=mean(Plant_C_Mgha, na.rm = T),
+            SD=sd(Plant_C_Mgha, na.rm = T),
+            N = length(Plant_C_Mgha),
+            SE= SD / sqrt(N)) %>%
+  mutate (Stock = "Aboveground")
+
+
+
+#Belowground Carbon:
+sg_plant_below <- select (sg, Country,  BGC_MgCha, AGC_MgCha,BGB_gDWm2) %>%
+  # convert biomass to C by * 0.35 as per paper:
+  #By Fourqurean2012 "Seagrass ecosystems as a globally significantcarbon stock"
+  mutate(Plant_C_Mgha = ifelse(BGC_MgCha > 0, BGC_MgCha, BGB_gDWm2)) %>%
+    group_by(Country) %>%    #delete this line to get overall plant_C average
+    summarise(AV = mean(Plant_C_Mgha, na.rm = T),
+            SD = sd(Plant_C_Mgha, na.rm = T),
+            N  = length(Plant_C_Mgha),
+            SE = SD / sqrt(N)) %>%
+    mutate (Stock = "Belowground")
+
+#Merge plant above and below carbo data together:
+ab <- rbind (sg_plant_above, sg_plant_below)%>%
+  #Turning belowground stock into negative values for plotting.
+  mutate(AV= ifelse(Stock =="Aboveground",AV, AV*-1)) %>%
+  na.omit()
+
+#Draw a figure:
+MyBreaks <- c(-7,-5,-3, -2,-1,  0, 1,2)
+
+plot_Seagrass_plant <- ggplot(ab, aes(x=as.factor(Country), y=AV, fill = Stock))+
+  geom_bar(position="identity", stat="identity")+
+  geom_errorbar( aes(ymin= AV+SE, ymax = AV-SE), width=.4)+
+  geom_hline(yintercept=0)+
+  scale_y_continuous(breaks = MyBreaks,labels = abs(MyBreaks), limits = c(-7,2))+ #abs to remove negative values on y-axis below 0
+  scale_fill_manual(values = c("#00FF00","#006633"))+
+  xlab("Country")+ ylab(bquote("Plant carbon stock "  (Mg*~ha^-1)))+
+  ggtitle("Seagrasses")+
+  theme_classic()+
+  theme(axis.text.x=element_text(vjust=0.5,size=12),
+        axis.text.y=element_text(size=12),
+        axis.title.y=element_text(size=20),
+        axis.title.x=element_text(size=20),
+        legend.position = c(.8, .2),
+        legend.text = element_text(size = 9),
+        legend.title = element_text(face = "italic", size=10),
+        plot.title = element_text(hjust = 0.5,lineheight=1.2, face="bold",size=20))
+
+plot_Seagrass_plant
+
+```
+
+```{r, echo=F,warning=F, message=F,include=F}
+#Mean and SE Admixture Carbons:
+mean_mg_carbon_mixed_above <- round(as.numeric(ab_species[ab_species$Species=="Admixture" & ab_species$Stock=="Aboveground","AV" ]),1)
+
+SE_mg_carbon_mixed_above <- round(as.numeric(ab_species[ab_species$Species=="Admixture" & ab_species$Stock=="Aboveground","SE" ]),1)
+
+
+```
+
+
+Seagrass AGC and BGC within the SWIO had a mean of ___ ±___ ton C ha-1  (± SE) and ___ ±___  ton C ha-1, respectively (Figure 6; Table S1). These values are relatively __________ to the global medians reported by Fourqurean et al. (2012) of 0.26 ton C ha-1 for AGC and 0.54 ton C ha-1 for BGC. However, similar to global trends, WIO datasets reveal that approximately two-thirds of the living seagrass carbon is stored belowground. The seagrass meadows composed of mixed species had a AGC range of over ____ orders of magnitude (___ ±___ ton C ha-1), reflecting the importance of species composition. Within monospecific meadows, the highest seagrass AGC and BGC has been recorded for ________ followed by ________, _______ and _________; while the lowest was found for ______ in ______ (Figure 6). These pattern across species ???... 
+
+ 
+
+ 
+
+Figure 6. Seagrass plant biomass/carbon stocks within the SWIO region. Aboveground and belowground biomass according to (a) species, and (b) location. 
+
+ 
+
+SOIL CARBON  
+
+ 
+
+The only available estimates were recently recorded in Tanzania (Belshe2018; Gullstrom2018) and Kenya (Githaiga2017a), where seagrass soil showed a mean carbon concentration of ___ ±___ % (± SE), and a SOC stock of ___ ±___  ton C ha-1 (X depth). These values are in line with ____________ , but relatively _______compared to the global median of 1.4% reported by Fourqurean et al (2012). 
+
+ 
+
+Following global patterns, seagrass SOC stocks varied significantly across species and mixed meadows. ________ 
+
+ 
+
+IDEAS 
+
+Weird variability or random trends - could be related to tiny samples size OR super shallow cores.  
+
+ 
+
+ 
+
+Fig. 7. Seagrass SOC stocks within the SWIO region. 
 
 
 ```{r, echo=F,warning=F, message=F,include=F}
