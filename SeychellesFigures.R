@@ -1,7 +1,10 @@
 #FIG_MangrovePlant_AGC_BGC_by_Country (mean +- SE):=========
-#AboveGround Carbon:
-library(readxl)
+#LOAD DATA and LIBRARIES first:
+if (!require(tidyverse)) library(tidyverse) # it loads/updates packages if not loaded/updated in your R environment yet
 library(tidyverse)
+
+if (!require(readxl)) library(readxl) # it loads/updates packages if not loaded/updated in your R environment yet
+library(readxl)
 
 mg <- read_excel("SeychellesMangroveReview.xlsx", sheet = "Mangrove_BC_stock")
 sg <- read_excel("SeychellesSeagrassReview.xlsx", sheet = "Seagrass_BC_stock")
@@ -72,6 +75,47 @@ ggsave(plot_mangrove_plant_byCountry , dpi=600, width = 7, height = 5,
        filename = "FIG_MangrovePlant_AGC_BGC_byCountry_WithN.png")
 
 ----------------------------------------------------------------------------------------
+  
+#TABLE_MangrovePlant_AGC_BGC (mean +- SE):=========
+
+mg <- read_excel("SeychellesMangroveReview.xlsx", sheet = "Mangrove_BC_stock")
+
+mg_plant_above_table <- select(mg,Reference,Country,Location, Species,Height_m,Height_m_SE,
+                         DBH_cm,DBH_cm_SE,TreeDensity_ha,TreeDensity_ha_SE,
+                         AGB_MgDWha,AGC_MgCha,BGB_MgDWha,BGC_MgCha) %>%
+  #If "AGC_MgCha" present keep it  and if not we convert aboveground biomass to C by * 0.48
+  #*Most papers say "Stocks were determined from AGB and BGB using a carbon fraction of 0.48 for AGB and 0.39 for BGB
+  #(Kauffman and Donato 2012; Abino et al. 2014).
+  mutate(Plant_AGC_Mgha = ifelse(is.na(AGC_MgCha)=="FALSE", AGC_MgCha, 0.48 * as.numeric(AGB_MgDWha)))  %>%
+  mutate(Plant_BGC_Mgha = ifelse(is.na(BGC_MgCha)=="FALSE", BGC_MgCha, 0.39 * as.numeric(BGB_MgDWha)))
+  
+
+#Change to numeric:
+mg_plant_above_table$Height_m_SE <- as.numeric(mg_plant_above_table$Height_m_SE)
+mg_plant_above_table$Height_m <- as.numeric(mg_plant_above_table$Height_m)
+
+mg_plant_above_table$TreeDensity_ha_SE <- as.numeric(mg_plant_above_table$TreeDensity_ha_SE)
+mg_plant_above_table$DBH_cm_SE <- as.numeric(mg_plant_above_table$DBH_cm_SE)
+mg_plant_above_table$TreeDensity_ha_SE <- as.numeric(mg_plant_above_table$TreeDensity_ha_SE)
+
+
+#Round all numeric values:
+mg_plant_above_table_round <- mg_plant_above_table %>% 
+  mutate_if(is.numeric, round, digits=1)
+
+  
+#Replace NA with blanks (numeric back to character to do so):
+mg_plant_above_table_round<- sapply(mg_plant_above_table_round, as.character)
+mg_plant_above_table_round[is.na(mg_plant_above_table_round)] <- " "
+
+View(mg_plant_above_table_round )
+
+
+write.csv(mg_plant_above_table_round, row.names = F, file = "TABLE_Mangrove_AGC_BGC.csv")
+
+
+----------------------------------------------------------------------------------------
+  
   
 #FIG_MangrovePlant_AGC_BGC_bySpecies (mean +- SE):=========
 #AboveGround Carbon:
@@ -320,7 +364,40 @@ ggsave(plot_Seagrass_plant_Country,dpi=600, width = 9, height = 5, filename = "F
 write.csv(ab_sg_plant_Country, row.names = F, file = "FIG_Seagrass_Plant_AGC_BGC_by_Country_WithN.csv")
 
 -------------------------------------------------------------------------------------------------
+
+#TABLE_Seagrass_AGC_BGC (mean +- SE):=========
+
+sg <- read_excel("SeychellesSeagrassReview.xlsx", sheet = "Seagrass_BC_stock")
+
+sg_plant_above_table <- select(sg,Reference,Country,Location, Species,
+                               Height_m,Height_m_SE,ShootDensity_m2_SE,ShootDensity_m2,
+                               AGC_MgCha, AGB_gDWm2, BGC_MgCha,BGB_gDWm2)%>%
   
+  #If "AGC_MgCha" or "BGC_Mgha is present keep it  and if not we convert aboveground biomass to C by * 0.35
+  mutate(Plant_AGC_Mgha = ifelse(is.na(AGC_MgCha)=="FALSE", AGC_MgCha, 0.35 * as.numeric(AGB_gDWm2)/100)) %>%
+  mutate(Plant_BGC_Mgha = ifelse(is.na(BGC_MgCha)=="FALSE", BGC_MgCha, 0.35 * as.numeric(BGB_gDWm2) /100 ))
+
+
+#Change to numeric:
+sg_plant_above_table$Height_m_SE <- as.numeric(sg_plant_above_table$Height_m_SE)
+sg_plant_above_table$ShootDensity_m2_SE <- as.numeric(sg_plant_above_table$ShootDensity_m2_SE)
+
+
+#Round all numeric values:
+sg_plant_above_table_round <- sg_plant_above_table %>% 
+  mutate_if(is.numeric, round, digits=1)
+
+
+#Replace NA with blanks (numeric back to character to do so):
+sg_plant_above_table_round<- sapply(sg_plant_above_table_round, as.character)
+sg_plant_above_table_round[is.na(sg_plant_above_table_round)] <- " "
+
+View(sg_plant_above_table_round )
+
+write.csv(sg_plant_above_table_round, row.names = F, file = "TABLE_Seagrass_AGC_BGC.csv")
+
+
+----------------------------------------------------------------------------------------
 
 #FIG_Seagrass_Plant_AGC_BGC_by_Species (mean +- SE):=========
 #AboveGround Carbon:
