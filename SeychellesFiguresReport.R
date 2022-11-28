@@ -5,14 +5,19 @@ library(readxl)
 library(gridExtra)
 library(ggpmisc)
 
-mg1 <- read_excel("Soil_inner_NOV22_Pawel.xlsx", sheet = "LOI550inner") %>%
+getwd()
+setwd("C:/Users/poles/Documents/00Deakin_Docs/R/BCL_R/Seychelles/DATA")
+
+#Replace (CTRL+H) spaces,with _, % with percent and -, (, ) with nothing in Excel first in a new sheet.
+
+mg1 <- read_excel("Soil_inner_NOV22_Pawel_2811.xlsx", sheet = "LOI550inner") %>%
   select(Island_Name,sample_depth_, Carbon_density_g_cm3,Bulk_Density_Corrected_g_C_m3,OC_percent )%>%
   mutate(Location = "Inner")
 
 mg1$Depth <- fct_rev(mg1$sample_depth_)
 
 
-mg2 <- read_excel("Soil_outer_NOV22_Pawel.xlsx", sheet = "LOI550outer") %>%
+mg2 <- read_excel("Soil_outer_NOV22_Pawel_2811.xlsx", sheet = "LOI550outer") %>%
   select(Island_Name,sample_depth_, Carbon_density_g_cm3,Bulk_Density_Corrected_g_C_m3,OC_percent )%>%
   mutate(Location = "Outer")
 
@@ -81,7 +86,10 @@ c
 plot1 <- grid.arrange(a,b,c, ncol = 1)
 
 ggsave(plot1 , dpi=600, width = 12, height = 15,
-       filename = "FIG_plot_InnerOuter1.png")
+       filename = "PlotSoil_InnerOuter_2811.png")
+
+ggsave(plot1 , dpi=600, width = 12, height = 15,
+       filename = "PlotSoil_InnerOuter_2811.pdf")
 
 
 #PLOT inner 2 (Soil By Depth)=======
@@ -100,7 +108,7 @@ i1<-ggplot(mg1, aes(y=Depth, x=Carbon_density_g_cm3*1000))+
         axis.title.y=element_text(size=20),
         axis.title.x=element_text(size=20,vjust=-0.5),
         legend.position = "top",
-        legend.text = element_text(size = 9),
+        legend.text = element_text(size = 12),
         legend.title = element_text(face = "bold", size=10),
         plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))
 
@@ -120,8 +128,8 @@ i2<-ggplot(mg1, aes(y=Depth, x=Bulk_Density_Corrected_g_C_m3))+
         axis.title.y=element_text(size=20),
         axis.title.x=element_text(size=20,vjust=-0.5),
         legend.position = "none",
-        legend.text = element_text(size = 9),
-        legend.title = element_text(face = "bold", size=10),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size=12),
         plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))
 
 
@@ -140,8 +148,8 @@ i3<-ggplot(mg, aes(y=Depth, x=OC_percent))+
         axis.title.y=element_text(size=20),
         axis.title.x=element_text(size=20,vjust=-0.5),
         legend.position = "none",
-        legend.text = element_text(size = 9),
-        legend.title = element_text(face = "bold", size=10),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size=12),
         plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))
 
 
@@ -150,8 +158,10 @@ i3
 plot_inner_depth <- grid.arrange(i1,i2,i3, ncol = 1)
 
 ggsave(plot_inner_depth , dpi=600, width = 12, height = 15,
-       filename = "FIG_plot_inner_depth.png")
+       filename = "FIG_plot_inner_depth_2811.png")
 
+ggsave(plot_inner_depth , dpi=600, width = 12, height = 15,
+       filename = "FIG_plot_inner_depth_2811.pdf")
 
 #PLOT outer 2 (Soil By Depth)=======
 names(mg2)
@@ -169,8 +179,8 @@ o1<-ggplot(mg2, aes(y=Depth, x=Carbon_density_g_cm3*1000))+
         axis.title.y=element_text(size=20),
         axis.title.x=element_text(size=20,vjust=-0.5),
         legend.position = "top",
-        legend.text = element_text(size = 9),
-        legend.title = element_text(face = "bold", size=10),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size=12),
         plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))
 
 
@@ -189,8 +199,8 @@ o2<-ggplot(mg2, aes(y=Depth, x=Bulk_Density_Corrected_g_C_m3))+
         axis.title.y=element_text(size=20),
         axis.title.x=element_text(size=20,vjust=-0.5),
         legend.position = "none",
-        legend.text = element_text(size = 9),
-        legend.title = element_text(face = "bold", size=10),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(face = "bold", size=12),
         plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))
 
 
@@ -219,7 +229,11 @@ o3
 plot_outer_depth <- grid.arrange(o1,o2,o3, ncol = 1)
 
 ggsave(plot_outer_depth , dpi=600, width = 12, height = 15,
-       filename = "FIG_plot_outer_depth.png")
+       filename = "FIG_plot_outer_depth_2811.png")
+
+ggsave(plot_outer_depth , dpi=600, width = 12, height = 15,
+       filename = "FIG_plot_outer_depth_2811.pdf")
 
 
 #write.csv(mg, file = "mg.csv", row.names = F) #Excel DATA for summary pivots
+
