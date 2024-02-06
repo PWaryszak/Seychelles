@@ -1,13 +1,18 @@
 #LOAD DATA and LIBRARIES first:=======
+if (!require(ggpmisc)) install.packages('ggpmisc')
+if (!require(tidyverse)) install.packages('tidyverse')
+if (!require(gridExtra)) install.packages('gridExtra')
+if (!require(svglite)) install.packages('svglite')
+if (!require(readxl)) install.packages('readxl')
+
+library('svglite')
 library(tidyverse)
 library(readxl)
-
 library(gridExtra)
 library(ggpmisc)
 
 getwd()
 setwd("C:/Users/poles/Documents/00Deakin_Docs/R/BCL_R/Seychelles/DATA")
-
 #Replace (CTRL+H) spaces,with _, % with percent and -, (, ) with nothing in Excel first in a new sheet.
 
 mg1 <- read_excel("Soil_inner_NOV22_Pawel_2811.xlsx", sheet = "LOI550inner") %>%
@@ -16,7 +21,6 @@ mg1 <- read_excel("Soil_inner_NOV22_Pawel_2811.xlsx", sheet = "LOI550inner") %>%
 
 mg1$Depth <- fct_rev(mg1$sample_depth_)
 
-
 mg2 <- read_excel("Soil_outer_NOV22_Pawel_2811.xlsx", sheet = "LOI550outer") %>%
   select(Island_Name,sample_depth_, Carbon_density_g_cm3,Bulk_Density_Corrected_g_C_m3,OC_percent )%>%
   mutate(Location = "Outer")
@@ -24,14 +28,14 @@ mg2 <- read_excel("Soil_outer_NOV22_Pawel_2811.xlsx", sheet = "LOI550outer") %>%
 mg2$Depth <- fct_rev(mg2$sample_depth_)
 
 mg <- rbind(mg1,mg2)
-
+mg$Island_Name <- as.factor(as.character(mg$Island_Name))
 
 names(mg)
 
 #Plot inner and outer 1 (Soil by Island)========
-a <-ggplot(mg, aes(x=as.factor(Island_Name), y=Carbon_density_g_cm3*1000))+ #, fill = Island_Name
+a <-ggplot(mg, aes(x=Island_Name, y=Carbon_density_g_cm3*1000, fill=Island_Name))+ #, fill = Island_Name
   geom_boxplot(outlier.shape = NA) +
-  #geom_jitter(alpha =0.6)+
+  scale_y_continuous(limits = c(0,80))+
   xlab("")+ ylab(bquote("Soil carbon density "  (mg*~cm^-3)))+
   ggtitle("a)")+
   theme_classic()+
@@ -46,7 +50,7 @@ a <-ggplot(mg, aes(x=as.factor(Island_Name), y=Carbon_density_g_cm3*1000))+ #, f
 
 a
 
-b <-ggplot(mg, aes(x=as.factor(Island_Name), y=Bulk_Density_Corrected_g_C_m3))+  #, fill = Island_Name
+b <-ggplot(mg, aes(x=Island_Name, y=Bulk_Density_Corrected_g_C_m3, fill=Island_Name))+  #, fill = Island_Name
   geom_boxplot(outlier.shape = NA) +
   #geom_jitter(alpha =0.6)+
   xlab("")+ ylab(bquote("Soil bulk density "  (g*~cm^-3)))+
@@ -63,11 +67,11 @@ b <-ggplot(mg, aes(x=as.factor(Island_Name), y=Bulk_Density_Corrected_g_C_m3))+ 
 
 b
 
-c<-ggplot(mg, aes(x=as.factor(Island_Name), y=OC_percent))+  #, fill = Island_Name
+c<-ggplot(mg, aes(x=Island_Name, y=OC_percent, fill=Island_Name))+  #, fill = Island_Name
   geom_boxplot(outlier.shape = NA) +
   #geom_jitter(alpha =0.6)+
   xlab("Sampling sites")+
-  ylab("Soil carbon content (%) \n"  )+
+  ylab("Soil organic carbon content (%) \n"  )+
   ggtitle("c)")+
   theme_classic()+
   theme(axis.text.x=element_text(vjust=0.5,size=16, color="black"),
@@ -86,10 +90,10 @@ c
 plot1 <- grid.arrange(a,b,c, ncol = 1)
 
 ggsave(plot1 , dpi=600, width = 12, height = 15,
-       filename = "PlotSoil_InnerOuter_2811.png")
+       filename = "PlotSoil_InnerOuter_2024_inColour.png")
 
 ggsave(plot1 , dpi=600, width = 12, height = 15,
-       filename = "PlotSoil_InnerOuter_2811.pdf")
+       filename = "PlotSoil_InnerOuter_2024_inColour.svg")
 
 
 #PLOT inner 2 (Soil By Depth)=======
@@ -233,6 +237,8 @@ ggsave(plot_outer_depth , dpi=600, width = 12, height = 15,
 
 ggsave(plot_outer_depth , dpi=600, width = 12, height = 15,
        filename = "FIG_plot_outer_depth_2811.pdf")
+
+#send it as svg file - seems highest quality compared to png.
 
 
 #write.csv(mg, file = "mg.csv", row.names = F) #Excel DATA for summary pivots
