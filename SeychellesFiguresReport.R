@@ -5,7 +5,7 @@ if (!require(gridExtra)) install.packages('gridExtra')
 if (!require(svglite)) install.packages('svglite')
 if (!require(readxl)) install.packages('readxl')
 
-library('svglite')
+library(svglite)
 library(tidyverse)
 library(readxl)
 library(gridExtra)
@@ -34,27 +34,38 @@ names(mg)
 
 #Plot inner and outer 1 (Soil by Island)========
 a <-ggplot(mg, aes(x=Island_Name, y=Carbon_density_g_cm3*1000, fill=Island_Name))+ #, fill = Island_Name
-  geom_boxplot(outlier.shape = NA) +
+    geom_boxplot(outlier.shape = NA) +
+
   scale_y_continuous(limits = c(0,80))+
   xlab("")+ ylab(bquote("Soil carbon density "  (mg*~cm^-3)))+
-  ggtitle("a)")+
-  theme_classic()+
-  theme(axis.text.x=element_text(vjust=0.5,size=16, color="black"),
+  ggtitle("")+
+ theme_classic()+
+ theme(axis.text.x=element_text(vjust=0.5,size=16, color="black"),
         axis.text.y=element_text(size=16, color="black"),
         axis.title.y=element_text(size=20),
         axis.title.x=element_text(size=20,vjust=-0.5),
         legend.position = "none",
         legend.text = element_text(size = 9),
         legend.title = element_text(face = "italic", size=10),
-        plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))
+    
+        rect = element_rect(fill = "transparent"), #turning background transparent
+    
+        plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))+
+  
+   geom_rect(aes(xmin=0, xmax=2.5, ymin=-Inf, ymax=Inf), fill="grey", alpha=0.01)+
+      geom_boxplot(outlier.shape = NA) 
 
-a
+  
+a #Soil carbon density 
+
+
+# Assuming 'Island_Name' is a factor variable
+#mg$Island_Name <- factor(mg$Island_Name, levels = unique(mg$Island_Name))
 
 b <-ggplot(mg, aes(x=Island_Name, y=Bulk_Density_Corrected_g_C_m3, fill=Island_Name))+  #, fill = Island_Name
   geom_boxplot(outlier.shape = NA) +
-  #geom_jitter(alpha =0.6)+
   xlab("")+ ylab(bquote("Soil bulk density "  (g*~cm^-3)))+
-  ggtitle("b)")+
+  ggtitle("")+
   theme_classic()+
   theme(axis.text.x=element_text(vjust=0.5,size=16, color="black"),
         axis.text.y=element_text(size=16, color="black"),
@@ -63,16 +74,22 @@ b <-ggplot(mg, aes(x=Island_Name, y=Bulk_Density_Corrected_g_C_m3, fill=Island_N
         legend.position = "none",
         legend.text = element_text(size = 9),
         legend.title = element_text(face = "italic", size=10),
-        plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))
+        
+        rect = element_rect(fill = "transparent"), #turning background transparent
+    
+        plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))+
+  
+     geom_rect(aes(xmin=0, xmax=2.5, ymin=-Inf, ymax=Inf), fill="grey", alpha=0.01)+
+      geom_boxplot(outlier.shape = NA) 
+
 
 b
 
 c<-ggplot(mg, aes(x=Island_Name, y=OC_percent, fill=Island_Name))+  #, fill = Island_Name
   geom_boxplot(outlier.shape = NA) +
-  #geom_jitter(alpha =0.6)+
-  xlab("Sampling sites")+
-  ylab("Soil organic carbon content (%) \n"  )+
-  ggtitle("c)")+
+  xlab("")+
+  ylab(bquote("Soil organic carbon content (%) \n"))+ 
+  ggtitle("")+
   theme_classic()+
   theme(axis.text.x=element_text(vjust=0.5,size=16, color="black"),
         axis.text.y=element_text(size=16, color="black"),
@@ -81,19 +98,23 @@ c<-ggplot(mg, aes(x=Island_Name, y=OC_percent, fill=Island_Name))+  #, fill = Is
         legend.position = "none",
         legend.text = element_text(size = 9),
         legend.title = element_text(face = "italic", size=10),
-        plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))
+        
+        rect = element_rect(fill = "transparent"), #turning background transparent
+    
+        plot.title = element_text(hjust = 0.0,lineheight=1.2, face="bold",size=20))+
+  
+     geom_rect(aes(xmin=0, xmax=2.5, ymin=-Inf, ymax=Inf), fill="grey", alpha=0.01)+
+      geom_boxplot(outlier.shape = NA) 
+
 
 
 c
 
 #Join all plots together:
-plot1 <- grid.arrange(a,b,c, ncol = 1)
+plot1 <- grid.arrange(b,c,a, ncol = 1)
 
-ggsave(plot1 , dpi=600, width = 12, height = 15,
-       filename = "PlotSoil_InnerOuter_2024_inColour.png")
-
-ggsave(plot1 , dpi=600, width = 12, height = 15,
-       filename = "PlotSoil_InnerOuter_2024_inColour.svg")
+ggsave(plot1 , dpi=1200, width = 12, height = 15,filename = "PlotSoil_InnerOuter_2024_inColour_1200DPI_GreyShade_V2.png")
+ggsave(plot1 , dpi=1200, width = 12, height = 15,filename = "PlotSoil_InnerOuter_2024_inColour_1200DPI_GreyShade_V4.svg")
 
 
 #PLOT inner 2 (Soil By Depth)=======
